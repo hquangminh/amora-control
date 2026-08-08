@@ -1016,6 +1016,12 @@ function bind(){
 
   const diag=document.getElementById('b_diag');
   if(diag)diag.onclick=async()=>{
+    // Doc thang tu o nhap, khong dung ban da luu — neu khong thi go khoa moi
+    // roi bam thang vao day se van thu bang khoa cu.
+    const u=document.getElementById('f_url')?.value.trim();
+    const k=document.getElementById('f_key')?.value.trim();
+    if(u!==undefined&&u!==S.apiUrl){S.apiUrl=u;store.set('ac.url',u)}
+    if(k!==undefined&&k!==S.apiKey){S.apiKey=k;store.set('ac.key',k)}
     if(!S.apiUrl)return toast('Chưa nhập địa chỉ webhook',true);
     if(S.apiUrl.includes('/webhook-test/'))return toast('Đang dùng URL thử nghiệm — bấm nút đổi ở trên',true);
     diag.disabled=true; diag.textContent='Đang kiểm tra…';
