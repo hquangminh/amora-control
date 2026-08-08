@@ -195,14 +195,27 @@ h1{font-family:Lora,serif;font-size:25px;font-weight:600;line-height:1.2;padding
 .fab svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
 
 nav{position:fixed;left:0;right:0;bottom:0;z-index:30;max-width:620px;margin:0 auto;
-  display:grid;grid-template-columns:repeat(5,1fr);background:rgba(22,21,27,.95);backdrop-filter:blur(16px);
+  display:grid;grid-template-columns:repeat(6,1fr);background:rgba(22,21,27,.95);backdrop-filter:blur(16px);
   border-top:1px solid var(--soft);padding-bottom:env(safe-area-inset-bottom)}
-nav button{padding:10px 2px 11px;font-size:10.5px;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:500;transition:color .15s;position:relative}
+nav button{padding:10px 1px 11px;font-size:10px;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:500;transition:color .15s;position:relative}
 nav button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 nav button.on{color:var(--ember)}
 nav .badge{position:absolute;top:5px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:99px;
   background:var(--rust);color:#fff;font-size:9.5px;font-weight:700;display:grid;place-items:center;padding:0 4px}
 
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 var(--pad) 22px}
+.ph{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--hi);aspect-ratio:4/5;display:block;width:100%;padding:0}
+.ph:hover{border-color:var(--dim)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph .noimg{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:var(--dim);text-align:center;padding:10px;line-height:1.5}
+.ph .cap{position:absolute;left:0;right:0;bottom:0;padding:20px 8px 7px;font-size:10px;
+  background:linear-gradient(transparent,rgba(10,9,13,.92));display:flex;justify-content:space-between;gap:6px;align-items:flex-end}
+.ph .cap b{font-weight:600;color:var(--wax)}
+.ph .badge2{position:absolute;top:7px;left:7px;font-size:9.5px;font-weight:700;letter-spacing:.04em;
+  padding:3px 7px;border-radius:99px;background:rgba(10,9,13,.75);border:1px solid var(--line);color:var(--smoke)}
+.ph .badge2.hot{color:var(--ember);border-color:var(--deep)}
+.ph .badge2.ok{color:var(--jade);border-color:rgba(111,180,155,.4)}
+.ph .badge2.bad{color:var(--rust);border-color:rgba(196,87,75,.4)}
 .empty{padding:44px var(--pad);text-align:center;color:var(--smoke)}
 .empty svg{width:32px;height:32px;stroke:var(--dim);fill:none;stroke-width:1.4;margin-bottom:13px}
 .empty p{font-size:13.5px;line-height:1.6;margin-bottom:15px}
@@ -249,8 +262,8 @@ const store={get(k){try{return localStorage.getItem(k)}catch(e){return mem[k]??n
 
 const S={tab:'home', seg:0, filter:'all', q:'',
   apiUrl:store.get('ac.url')||'', apiKey:store.get('ac.key')||'',
-  web:[], social:[], seo:[], runs:[], insights:[], settings:{},
-  loading:true, open:null, busy:false};
+  web:[], social:[], seo:[], runs:[], insights:[], settings:{}, pool:[], jobs:[],
+  loading:true, open:null, busy:false, conn:'idle', lastErr:''};
 
 /* ═════════ từ vựng ═════════ */
 const WEB_FLOW=['IDEA','READY','PROCESSING','WAITING_APPROVAL','APPROVED','PUBLISHED'];
@@ -275,6 +288,7 @@ const TABS=[
   {k:'web',t:'Website',d:'M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18M21 12a9 9 0 1 0-18 0 9 9 0 0 0 18 0z'},
   {k:'social',t:'Xã hội',d:'M12 3v18M12 21c-2 0-3.2-1.4-3.2-3.2 0-2.3 3.2-5 3.2-5s3.2 2.7 3.2 5C15.2 19.6 14 21 12 21z'},
   {k:'seo',t:'SEO',d:'M4 19V9M10 19V4M16 19v-7M22 19H2'},
+  {k:'pool',t:'Kho ảnh',d:'M3 5h18v14H3zM3 15l5-5 4 4 3-3 6 6'},
   {k:'sys',t:'Hệ thống',d:'M12 8.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1'}];
 
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -318,6 +332,15 @@ insights:[
  {post_key:'AM-2026-W33-01',platform:'instagram',age_days:7,metric:'reach',value:1604},
  {post_key:'AM-2026-W33-01',platform:'instagram',age_days:7,metric:'saved',value:47},
  {post_key:'AM-2026-W33-01',platform:'instagram',age_days:7,metric:'total_interactions',value:190}],
+pool:[
+ {asset_key:'AST-0001',origin:'MANUAL',mode:'',pillar:'SAN_PHAM',status:'APPROVED',used_count:3,last_used_at:'2026-08-10 08:01',drive_file_id:'',prompt_or_note:'Ảnh chụp studio, nền gỗ sồi'},
+ {asset_key:'JOB-20260808-001-V01',origin:'AI_REMIX',mode:'SCENE',pillar:'NGHI_THUC',status:'PENDING_REVIEW',used_count:0,last_used_at:'',drive_file_id:'',source_asset_key:'AST-0001',prompt_or_note:'Nến trên bậu cửa sổ sáng sớm, nắng xiên qua rèm lanh'},
+ {asset_key:'JOB-20260808-001-V02',origin:'AI_REMIX',mode:'SCENE',pillar:'NGHI_THUC',status:'PENDING_REVIEW',used_count:0,last_used_at:'',drive_file_id:'',source_asset_key:'AST-0001',prompt_or_note:'Nến trên bậu cửa sổ, góc chụp từ trên xuống'},
+ {asset_key:'JOB-20260808-003-V01',origin:'AI_REMIX',mode:'MOOD',pillar:'CAM_XUC',status:'APPROVED',used_count:1,last_used_at:'2026-08-06 20:00',drive_file_id:'',prompt_or_note:'Vải lanh nhàu dưới nắng chiều'},
+ {asset_key:'JOB-20260808-001-V03',origin:'AI_REMIX',mode:'SCENE',pillar:'NGHI_THUC',status:'REJECTED',used_count:0,last_used_at:'',drive_file_id:'',prompt_or_note:'Nhãn bị méo chữ'}],
+jobs:[
+ {job_key:'JOB-20260808-001',created_at:'2026-08-08 09:00',source_asset_key:'AST-0001',mode:'SCENE',scene_brief:'Đặt nến lên bậu cửa sổ gỗ vào sáng sớm, nắng xiên qua rèm vải lanh',pillar:'NGHI_THUC',variants:3,status:'DONE',result_count:3,last_error:''},
+ {job_key:'JOB-20260808-003',created_at:'2026-08-08 09:10',source_asset_key:'AST-0002',mode:'MOOD',scene_brief:'Bề mặt vải lanh nhàu nhẹ dưới nắng chiều, bóng đổ mềm',pillar:'CAM_XUC',variants:4,status:'QUEUED',result_count:0,last_error:''}],
 settings:{KILL_SWITCH:'OFF',PUBLISH_DAYS:'mon,wed,fri',PUBLISH_HOUR:'20',PUBLISH_MINUTE:'30',POSTS_PER_DAY:'1',
   ARTICLE_MIN_WORDS:'1400',AUDIT_PASS_SCORE:'80',REFRESH_ENABLED:'true',GSC_LOOKBACK_DAYS:'28',
   MAX_REFRESH_ATTEMPT:'2',BRAND_TONE:'ấm, chậm, gợi cảm tinh tế, kể chuyện',
@@ -328,12 +351,23 @@ settings:{KILL_SWITCH:'OFF',PUBLISH_DAYS:'mon,wed,fri',PUBLISH_HOUR:'20',PUBLISH
 async function api(action,payload={}){
   if(!S.apiUrl){await new Promise(r=>setTimeout(r,160));const d=demo();
     return {web_list:{web:d.web},social_list:{social:d.social},seo_list:{seo:d.seo},
-      runs:{runs:d.runs},insights:{insights:d.insights},settings:{settings:d.settings}}[action]||{ok:true,demo:true}}
-  const r=await fetch(S.apiUrl,{method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':S.apiKey},
-    body:JSON.stringify({action,...payload})});
-  if(!r.ok)throw new Error('n8n trả về '+r.status);
-  const j=await r.json();
+      runs:{runs:d.runs},insights:{insights:d.insights},settings:{settings:d.settings},pool_list:{pool:d.pool},studio_list:{jobs:d.jobs}}[action]||{ok:true,demo:true}}
+  let r;
+  try{
+    r=await fetch(S.apiUrl,{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':S.apiKey},
+      body:JSON.stringify({action,...payload})});
+  }catch(e){
+    throw new Error(S.apiUrl.includes('/webhook-test/')
+      ? 'Đang dùng URL thử nghiệm. Đổi /webhook-test/ thành /webhook/ rồi Activate workflow.'
+      : 'Không gọi được n8n. Kiểm tra: workflow đã Activate chưa, URL có đúng https không, node Webhook đã đặt allowedOrigins chưa.');
+  }
+  if(r.status===404) throw new Error('n8n không tìm thấy webhook này. Workflow chưa Activate, hoặc sai đường dẫn cuối URL.');
+  if(r.status===401||r.status===403) throw new Error('Sai khoá truy cập. Chuỗi trong app phải khớp credential Header Auth x-api-key ở n8n.');
+  if(r.status>=500) throw new Error('n8n nhận được lệnh nhưng workflow chạy lỗi. Mở tab Executions trong n8n xem node nào đỏ.');
+  if(!r.ok) throw new Error('n8n trả về '+r.status);
+  let j;
+  try{ j=await r.json(); }catch(e){ throw new Error('n8n trả về dữ liệu không phải JSON. Node Respond có thể chưa đặt Respond With = JSON.'); }
   if(j.error)throw new Error(j.error);
   return j;
 }
@@ -529,6 +563,58 @@ function vSeo(){
   return h;
 }
 
+/* ═════════ view: kho ảnh ═════════ */
+const POOLST={PENDING_REVIEW:{l:'Chờ duyệt',c:'hot'},APPROVED:{l:'Trong kho',c:'ok'},
+  REJECTED:{l:'Đã loại',c:'bad'},RETIRED:{l:'Cho nghỉ',c:''}};
+const thumb=id=>id?`https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w400`:'';
+
+function vPool(){
+  const pend=S.pool.filter(a=>a.status==='PENDING_REVIEW');
+  const ok=S.pool.filter(a=>a.status==='APPROVED');
+  let h=`<h1>Kho ảnh</h1><p class="sub"><b>${ok.length}</b> ảnh dùng được${pend.length?` · <span class="warn">${pend.length} chờ bạn duyệt</span>`:''}</p>
+  <div class="seg">${['Chờ duyệt','Trong kho','Lô đã đặt'].map((t,i)=>
+    `<button data-seg="${i}" class="${S.seg===i?'on':''}">${t}</button>`).join('')}</div>`;
+  if(S.loading)return h+skel(2);
+
+  if(S.seg===0){
+    if(!pend.length)return h+empty('M20 6L9 17l-5-5','Không có ảnh nào chờ duyệt.<br>Đặt một lô mới ở tab Lô đã đặt.');
+    h+='<div class="grid">';
+    for(const a of pend)h+=phCard(a);
+    return h+'</div>';
+  }
+  if(S.seg===1){
+    const sorted=[...ok].sort((x,y)=>Number(x.used_count||0)-Number(y.used_count||0));
+    if(!sorted.length)return h+empty('M3 5h18v14H3zM3 15l5-5 4 4','Kho còn trống.<br>Duyệt vài ảnh ở tab Chờ duyệt.');
+    h+=`<div class="group"><div class="banner">Xếp theo <b>ít dùng nhất</b> lên trước — đây cũng là thứ tự hệ thống tự lấy khi đăng bài, nên bạn không bao giờ đăng trùng ảnh trong thời gian ngắn.</div></div><div class="grid">`;
+    for(const a of sorted)h+=phCard(a);
+    return h+'</div>';
+  }
+  h+=`<div class="group"><button class="btn primary" data-newjob="1">Đặt lô ảnh mới</button></div><div class="group">`;
+  if(!S.jobs.length)return h+'</div>'+empty('M12 5v14M5 12h14','Chưa đặt lô nào.');
+  for(const j of [...S.jobs].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)))){
+    const bad=j.status==='FAILED',run=j.status==='RUNNING';
+    h+=`<div class="card ${bad?'bad':''}" style="cursor:default">
+      <div class="eyebrow"><span class="kw">${esc(j.mode)}</span><span>${esc(j.source_asset_key)}</span><span>${fs_(j.created_at)}</span></div>
+      <div class="ttl">${esc(j.scene_brief||'')}</div>
+      <div class="meta"><span class="tag ${bad?'bad':j.status==='DONE'?'ok':run?'hot':''}">${
+        {QUEUED:'Đang chờ',RUNNING:'Đang tạo',DONE:'Xong',FAILED:'Lỗi'}[j.status]||j.status}</span>
+        <span class="nums"><b>${j.result_count||0}</b>/${j.variants} ảnh</span>
+        ${j.pillar?`<span class="tag">${esc(j.pillar)}</span>`:''}</div>
+      ${j.last_error?`<div class="errline">${esc(String(j.last_error).slice(0,70))}</div>`:''}</div>`;
+  }
+  return h+'</div>';
+}
+function phCard(a){
+  const st=POOLST[a.status]||{l:a.status,c:''};
+  const src=thumb(a.drive_file_id)||a.cdn_url||'';
+  return `<button class="ph" data-open="pool:${esc(a.asset_key)}">
+    ${src?`<img src="${esc(src)}" alt="" loading="lazy" onerror="this.style.display='none'">`:''}
+    <div class="noimg">${esc(String(a.prompt_or_note||a.asset_key).slice(0,64))}</div>
+    <span class="badge2 ${st.c}">${a.origin==='AI_REMIX'?a.mode||'AI':'Ảnh chụp'}</span>
+    <div class="cap"><b>${esc(a.pillar||'')}</b><span>${Number(a.used_count||0)>0?'dùng '+a.used_count+'×':'chưa dùng'}</span></div>
+  </button>`;
+}
+
 /* ═════════ view: hệ thống ═════════ */
 function vSys(){
   let h=`<h1>Hệ thống</h1><p class="sub">Nhật ký, chạy tay và toàn bộ cấu hình</p>
@@ -560,7 +646,8 @@ function vSys(){
       <div class="acts" style="padding:0 0 16px">
         <button class="btn" data-run="HOOK_WF2">Chuẩn bị ảnh</button>
         <button class="btn" data-run="HOOK_WF3">Đăng bài chờ</button>
-        <button class="btn wide" data-run="HOOK_WF4">Thu số liệu Meta</button></div>
+        <button class="btn" data-run="HOOK_WF4">Thu số liệu Meta</button>
+        <button class="btn" data-run="HOOK_WF5">Trộn ảnh</button></div>
       <div class="glabel">Bảo trì</div>
       <button class="btn danger" data-act2="unstick">Gỡ bài kẹt ở "AI đang viết"</button>
       <div class="banner" style="margin:12px 0 0">Nút chạy tay gọi thẳng webhook của từng workflow. Địa chỉ lấy từ <b>RESEARCH_SETTINGS</b>, app không nhìn thấy.</div>
@@ -574,7 +661,14 @@ function vSys(){
       <input id="f_url" placeholder="https://n8n.cua-ban.com/webhook/amora-control" value="${esc(S.apiUrl)}"></div>
     <div class="field"><label>Khoá truy cập</label>
       <input id="f_key" type="password" placeholder="chuỗi bí mật khớp với n8n" value="${esc(S.apiKey)}"></div>
-    <button class="btn" id="b_conn">Lưu và kết nối</button></div>
+    <button class="btn" id="b_conn">Lưu và kết nối</button>
+    ${S.apiUrl.includes('/webhook-test/')?`<div class="banner err" style="margin:10px 0 0">
+      Bạn đang dùng <b>URL thử nghiệm</b>. Nó chỉ sống một lượt gọi rồi tắt.
+      <button class="btn small" id="b_fix" style="margin-top:9px">Đổi sang /webhook/ và nối lại</button></div>`:''}
+    ${S.conn==='fail'&&S.lastErr?`<div class="banner err" style="margin:10px 0 0">${esc(S.lastErr)}</div>`:''}
+    ${S.conn==='ok'?`<div class="banner" style="margin:10px 0 0;border-color:rgba(111,180,155,.4);background:rgba(111,180,155,.08)">
+      Đang nối tốt — <b>${S.web.length}</b> bài website, <b>${S.social.length}</b> bài xã hội, <b>${S.pool.length}</b> ảnh trong kho.</div>`:''}
+    <button class="btn" id="b_diag" style="margin-top:9px">Kiểm tra kết nối</button></div>
 
   <div class="group"><div class="glabel">Vận hành</div>
     <div class="switch ${off?'armed':''}">
@@ -717,6 +811,64 @@ function shSeo(id){
   show();
 }
 
+function shPool(key){
+  const a=S.pool.find(x=>x.asset_key===key); if(!a)return;
+  S.open={kind:'pool',key};
+  const st=POOLST[a.status]||{l:a.status,c:''};
+  const src=thumb(a.drive_file_id)||a.cdn_url||'';
+  document.getElementById('sheet').innerHTML=`<div class="grab"></div>
+  <h2>${esc(a.asset_key)}</h2>
+  <p class="shsub">${st.l} · ${a.origin==='AI_REMIX'?'AI trộn ('+esc(a.mode)+')':'Ảnh chụp'}${
+    a.source_asset_key?' · gốc '+esc(a.source_asset_key):''} · dùng ${Number(a.used_count||0)}×</p>
+  ${src?`<div class="thumb"><img src="${esc(src)}" alt="" onerror="this.parentNode.innerHTML='<div class=banner>Không xem trước được. Thư mục Drive phải để chế độ <b>Bất kỳ ai có đường liên kết</b> thì ảnh mới hiện ở đây.</div>'"></div>`:
+    `<div class="group"><div class="banner">Chưa có ảnh xem trước.</div></div>`}
+  ${a.prompt_or_note?`<div class="excerpt">${esc(a.prompt_or_note)}</div>`:''}
+  <div class="group">
+    <div class="field"><label>Chủ đề dùng cho</label><select id="e_pillar">
+      ${Object.entries({'':'Chưa gán',NGHI_THUC:'Nghi thức',CAM_XUC:'Cảm xúc',SAN_PHAM:'Sản phẩm',KIEN_THUC:'Kiến thức'})
+        .map(([k,v])=>`<option value="${k}" ${a.pillar===k?'selected':''}>${v}</option>`).join('')}</select></div>
+    <div class="field"><label>Mô tả ảnh (alt text)</label><input id="e_alt_text" value="${esc(a.alt_text||'')}"></div>
+  </div>
+  <div class="acts">
+    ${a.status==='PENDING_REVIEW'?`
+      <button class="btn primary" data-act="approve">Đưa vào kho</button>
+      <button class="btn danger" data-act="reject">Loại</button>`:''}
+    ${a.status==='APPROVED'?`
+      <button class="btn primary wide" data-act="save">Lưu thay đổi</button>
+      <button class="btn danger wide" data-act="retire">Cho ảnh này nghỉ</button>`:''}
+    ${['REJECTED','RETIRED'].includes(a.status)?'<button class="btn wide" data-act="approve">Đưa lại vào kho</button>':''}
+    <button class="btn wide" data-act="close">Đóng</button>
+  </div>`;
+  show();
+}
+
+function shJob(){
+  S.open={kind:'job',key:'new',isNew:true};
+  const srcs=S.pool.filter(a=>a.origin==='MANUAL'||a.status==='APPROVED');
+  document.getElementById('sheet').innerHTML=`<div class="grab"></div>
+  <h2>Đặt lô ảnh mới</h2><p class="shsub">WF5 sẽ tạo ở lượt chạy kế tiếp, hoặc bấm chạy tay ở tab Hệ thống</p>
+  <div class="group">
+    <div class="field"><label>Ảnh gốc</label><select id="e_source_asset_key">
+      ${srcs.map(a=>`<option value="${esc(a.asset_key)}">${esc(a.asset_key)}${a.pillar?' — '+esc(a.pillar):''}</option>`).join('')}
+    </select></div>
+    <div class="field"><label>Chế độ</label><select id="e_mode">
+      <option value="SCENE">Giữ nguyên sản phẩm, đổi bối cảnh</option>
+      <option value="MOOD">Không có sản phẩm, chỉ lấy tông màu</option></select></div>
+    <div class="field"><label>Bối cảnh muốn tạo</label>
+      <textarea id="e_scene_brief" placeholder="Đặt nến lên bậu cửa sổ gỗ vào sáng sớm, nắng xiên qua rèm vải lanh, có tách trà bên cạnh"></textarea></div>
+    <div class="two">
+      <div class="field"><label>Chủ đề</label><select id="e_pillar">
+        ${Object.entries({NGHI_THUC:'Nghi thức',CAM_XUC:'Cảm xúc',SAN_PHAM:'Sản phẩm',KIEN_THUC:'Kiến thức'})
+          .map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div>
+      <div class="field"><label>Số biến thể</label><input id="e_variants" inputmode="numeric" value="3"></div></div>
+    <div class="banner">Chế độ <b>giữ nguyên sản phẩm</b> khoá cứng hình dáng ly, màu sáp, bấc và nhãn trong prompt. Ảnh ra vẫn là hàng thật của bạn, chỉ đổi chỗ đứng.</div>
+  </div>
+  <div class="acts">
+    <button class="btn primary wide" data-act="create_job">Đặt lô</button>
+    <button class="btn wide" data-act="close">Huỷ</button></div>`;
+  show();
+}
+
 function show(){
   document.getElementById('scrim').classList.add('on');
   const s=document.getElementById('sheet'); s.classList.add('on'); s.scrollTop=0;
@@ -759,6 +911,18 @@ async function act(op){
       {approve:'Đã duyệt, AMORA 2 đang đăng',rewrite:'Đã yêu cầu viết lại',reject:'Đã huỷ bài'}[op]));
   }
 
+  if(kind==='job'){
+    const g=i=>document.getElementById('e_'+i)?.value;
+    return send('studio_create',{patch:{source_asset_key:g('source_asset_key'),mode:g('mode'),
+      scene_brief:g('scene_brief'),pillar:g('pillar'),variants:g('variants')}},'Đã đặt lô, WF5 sẽ tạo');
+  }
+  if(kind==='pool'){
+    const patch={asset_key:key};
+    if(op==='save'){patch.pillar=document.getElementById('e_pillar')?.value;
+      patch.alt_text=document.getElementById('e_alt_text')?.value}
+    const M={approve:'Đã đưa vào kho',reject:'Đã loại',retire:'Đã cho nghỉ',save:'Đã lưu'};
+    return send('pool_write',{op,patch},M[op]||'Xong');
+  }
   if(kind==='web'){
     const patch={content_id:key,...(op==='save'?rf('web'):{})};
     const M={save:'Đã lưu',unstick:'Đã đưa về hàng đợi',requeue:'Đã đưa lại vào hàng đợi viết'};
@@ -794,15 +958,17 @@ async function send(action,payload,msg){
 function render(){
   document.getElementById('main').innerHTML=
     S.tab==='home'?vHome():S.tab==='web'?vWeb():S.tab==='social'?vSocial():
-    S.tab==='seo'?vSeo():vSys();
+    S.tab==='seo'?vSeo():S.tab==='pool'?vPool():vSys();
   const pend=S.web.filter(w=>w.status==='WAITING_APPROVAL').length;
   document.getElementById('nav').innerHTML=TABS.map(t=>
     `<button data-tab="${t.k}" class="${S.tab===t.k?'on':''}">
       <svg viewBox="0 0 24 24"><path d="${t.d}"/></svg>${t.t}
       ${t.k==='home'&&pend?`<span class="badge">${pend}</span>`:''}</button>`).join('');
-  document.getElementById('fab').classList.toggle('hidden',S.tab!=='social');
+  document.getElementById('fab').classList.toggle('hidden',!['social','pool'].includes(S.tab));
   const pill=document.getElementById('pill');
   if(!S.apiUrl){pill.className='pill demo';pill.querySelector('span').textContent='bản xem thử'}
+  else if(S.conn==='fail'){pill.className='pill off';pill.querySelector('span').textContent='không nối được'}
+  else if(S.conn!=='ok'){pill.className='pill demo';pill.querySelector('span').textContent='đang thử nối'}
   else{const off=String(S.settings.KILL_SWITCH||'OFF').toUpperCase()==='ON';
     pill.className='pill'+(off?' off':'');
     pill.querySelector('span').textContent=off?'đã tạm dừng':'đang chạy'}
@@ -813,9 +979,10 @@ function bind(){
   document.querySelectorAll('[data-open]').forEach(el=>el.onclick=()=>{
     const i=el.dataset.open.indexOf(':');
     const k=el.dataset.open.slice(0,i),id=el.dataset.open.slice(i+1);
-    k==='web'?shWeb(id):k==='social'?shSocial(id):shSeo(id)});
+    k==='web'?shWeb(id):k==='social'?shSocial(id):k==='pool'?shPool(id):shSeo(id)});
   document.querySelectorAll('[data-filter]').forEach(el=>el.onclick=()=>{S.filter=el.dataset.filter;render()});
   document.querySelectorAll('[data-seg]').forEach(el=>el.onclick=()=>{S.seg=+el.dataset.seg;render()});
+  document.querySelectorAll('[data-newjob]').forEach(el=>el.onclick=()=>shJob());
   document.querySelectorAll('[data-new]').forEach(el=>el.onclick=()=>{
     if(el.dataset.new==='social')shSocial(); else {S.tab='web';render()}});
   document.querySelectorAll('[data-run]').forEach(el=>el.onclick=async()=>{
@@ -839,6 +1006,25 @@ function bind(){
     S.apiKey=document.getElementById('f_key').value.trim();
     store.set('ac.url',S.apiUrl);store.set('ac.key',S.apiKey);
     toast(S.apiUrl?'Đang kết nối…':'Đã quay về dữ liệu mẫu');await load()};
+  const fix=document.getElementById('b_fix');
+  if(fix)fix.onclick=async()=>{
+    S.apiUrl=S.apiUrl.replace('/webhook-test/','/webhook/');
+    store.set('ac.url',S.apiUrl); toast('Đã đổi sang URL chính thức'); await load()};
+
+  const diag=document.getElementById('b_diag');
+  if(diag)diag.onclick=async()=>{
+    if(!S.apiUrl)return toast('Chưa nhập địa chỉ webhook',true);
+    if(S.apiUrl.includes('/webhook-test/'))return toast('Đang dùng URL thử nghiệm — bấm nút đổi ở trên',true);
+    diag.disabled=true; diag.textContent='Đang kiểm tra…';
+    try{
+      const r=await api('settings');
+      const n=Object.keys(r.settings||{}).length;
+      S.conn='ok'; S.lastErr='';
+      toast(n?`Nối tốt — đọc được ${n} dòng cấu hình`:'Nối được nhưng RESEARCH_SETTINGS trống');
+    }catch(e){ S.conn='fail'; S.lastErr=e.message; toast(e.message,true); }
+    diag.disabled=false; render();
+  };
+
   const kill=document.getElementById('t_kill');
   if(kill)kill.onclick=async()=>{
     const next=kill.getAttribute('aria-checked')==='true'?'OFF':'ON';
@@ -858,7 +1044,7 @@ function bind(){
 
 document.getElementById('nav').onclick=e=>{const b=e.target.closest('[data-tab]');if(!b)return;
   S.tab=b.dataset.tab;S.filter='all';S.q='';S.seg=0;render()};
-document.getElementById('fab').onclick=()=>shSocial();
+document.getElementById('fab').onclick=()=>S.tab==='pool'?shJob():shSocial();
 document.getElementById('scrim').onclick=()=>{document.getElementById('dialog').classList.remove('on');hide()};
 document.getElementById('sheet').addEventListener('click',e=>{
   const a=e.target.closest('[data-act]');if(a)act(a.dataset.act)});
@@ -870,15 +1056,21 @@ async function load(quiet){
   const rb=document.getElementById('refresh'); rb.classList.add('spin');
   if(!quiet){S.loading=true;render()}
   try{
-    const [a,b,c,d,e,f]=await Promise.all([
-      api('web_list'),api('social_list'),api('seo_list'),api('runs'),api('insights'),api('settings')]);
+    const [a,b,c,d,e,f,g,h]=await Promise.all([
+      api('web_list'),api('social_list'),api('seo_list'),api('runs'),api('insights'),api('settings'),
+      api('pool_list'),api('studio_list')]);
     S.web=a.web||[]; S.social=b.social||[]; S.seo=c.seo||[];
     S.runs=d.runs||[]; S.insights=e.insights||[]; S.settings=f.settings||{};
+    S.pool=g.pool||[]; S.jobs=h.jobs||[];
+    S.conn='ok'; S.lastErr='';
     store.set('ac.cache',JSON.stringify({web:S.web,social:S.social,seo:S.seo,
-      runs:S.runs,insights:S.insights,settings:S.settings}));
+      runs:S.runs,insights:S.insights,settings:S.settings,pool:S.pool,jobs:S.jobs}));
   }catch(err){
+    S.conn='fail'; S.lastErr=err.message;
     const c=store.get('ac.cache');
-    if(c){Object.assign(S,JSON.parse(c));toast('Mất mạng — đang hiện bản lưu gần nhất',true)}
+    if(c){const d=JSON.parse(c);['web','social','seo','runs','insights','settings','pool','jobs']
+      .forEach(k=>{if(d[k]!==undefined)S[k]=d[k]});
+      toast('Không nối được — đang hiện bản lưu gần nhất',true)}
     else toast(err.message,true);
   }
   S.loading=false; rb.classList.remove('spin'); render();
