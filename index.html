@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16151B">
+<title>AMORA Control</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lora:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#16151B; --surface:#1E1D26; --hi:#282631; --line:#35323F; --soft:#2C2A35;
+  --wax:#EDE7DA; --smoke:#918CA0; --dim:#615C6E;
+  --ember:#F7A34A; --deep:#8A5220; --glow:rgba(247,163,74,.11);
+  --jade:#6FB49B; --rust:#C4574B; --iris:#8C86D6;
+  --pad:18px; --r:14px; --nav:74px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{min-height:100%;background:var(--void);color:var(--wax);
+  font-family:'Be Vietnam Pro',system-ui,sans-serif;font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom) + 12px)}
+#app{max-width:620px;margin:0 auto}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,textarea,select{font:inherit;color:inherit;width:100%;background:none;border:none}
+select{appearance:none;-webkit-appearance:none}
+:focus-visible{outline:2px solid var(--ember);outline-offset:2px;border-radius:5px}
+.hidden{display:none!important}
+a{color:var(--ember)}
+
+header{position:sticky;top:0;z-index:20;padding:calc(env(safe-area-inset-top) + 16px) var(--pad) 12px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:rgba(22,21,27,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--soft)}
+.brand{font-family:Lora,serif;font-size:18px;font-weight:600;letter-spacing:.06em}
+.brand em{font-style:italic;color:var(--ember);font-weight:500}
+.hbar{display:flex;align-items:center;gap:6px}
+.iconbtn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;border:1px solid var(--line);color:var(--smoke);transition:.15s}
+.iconbtn:hover{color:var(--wax);border-color:var(--dim)}
+.iconbtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn.spin svg{animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;border:1px solid var(--line);font-size:11px;letter-spacing:.04em;color:var(--smoke);white-space:nowrap}
+.pill i{width:6px;height:6px;border-radius:50%;background:var(--jade)}
+.pill.off{border-color:rgba(196,87,75,.4);color:var(--rust)} .pill.off i{background:var(--rust)}
+.pill.demo i{background:var(--dim)}
+
+h1{font-family:Lora,serif;font-size:25px;font-weight:600;line-height:1.2;padding:22px var(--pad) 3px}
+.sub{padding:0 var(--pad) 14px;color:var(--smoke);font-size:13px}
+.sub b{color:var(--wax);font-weight:600}.sub .warn{color:var(--rust)}
+.group{padding:0 var(--pad) 24px}
+.glabel{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--smoke);margin-bottom:9px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.glabel .n{color:var(--ember)}
+
+.seg{display:flex;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:3px;margin:0 var(--pad) 16px}
+.seg button{flex:1;padding:8px 4px;font-size:13px;border-radius:8px;color:var(--smoke);transition:.15s}
+.seg button.on{background:var(--hi);color:var(--wax);font-weight:600}
+
+.tools{padding:0 var(--pad) 14px;display:flex;flex-direction:column;gap:9px}
+.search{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:9px 12px}
+.search svg{width:15px;height:15px;stroke:var(--dim);fill:none;stroke-width:1.9;flex:0 0 auto}
+.search input{font-size:14px}.search input::placeholder{color:var(--dim)}
+.chips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:6px 13px;border-radius:99px;border:1px solid var(--line);font-size:12.5px;color:var(--smoke);white-space:nowrap;transition:.15s}
+.chip:hover{border-color:var(--dim)}
+.chip.on{background:var(--glow);border-color:var(--deep);color:var(--ember);font-weight:600}
+.chip .c{opacity:.65;margin-left:5px;font-variant-numeric:tabular-nums}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;width:100%;text-align:left;display:block;transition:.15s;margin-bottom:10px}
+.card:hover{border-color:var(--dim)}
+.card:active{transform:scale(.99)}
+.card.hot{border-color:var(--deep);background:linear-gradient(var(--glow),transparent 60%),var(--surface)}
+.card.bad{border-color:rgba(196,87,75,.32)}
+.eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--smoke);font-weight:600;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.eyebrow .kw{color:var(--ember)}
+.ttl{margin:7px 0 9px;font-size:14.5px;line-height:1.45}
+.ttl.serif{font-family:Lora,serif;font-size:15.5px;font-weight:500}
+.ttl.muted{color:var(--dim)}
+.meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:600;letter-spacing:.03em;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--smoke);white-space:nowrap}
+.tag.ok{color:var(--jade);border-color:rgba(111,180,155,.34)}
+.tag.hot{color:var(--ember);border-color:rgba(247,163,74,.38)}
+.tag.bad{color:var(--rust);border-color:rgba(196,87,75,.38)}
+.tag.ai{color:var(--iris);border-color:rgba(140,134,214,.34)}
+.nums{font-size:12px;color:var(--smoke);font-variant-numeric:tabular-nums}
+.nums b{color:var(--wax);font-weight:600}
+.errline{font-size:11.5px;color:var(--rust);margin-top:7px;line-height:1.4}
+
+.rail{display:flex;gap:3px;margin:10px 0 8px}
+.sg{height:3px;flex:1;border-radius:2px;background:var(--line)}
+.sg.on{background:var(--ember)} .sg.bad{background:var(--rust)}
+.stages{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.03em;text-transform:uppercase;color:var(--dim)}
+.stages span.on{color:var(--wax);font-weight:600}
+
+.item{position:relative;padding-left:38px;padding-bottom:6px}
+.item::before{content:'';position:absolute;left:10.5px;top:17px;bottom:-4px;width:1px;background:var(--line)}
+.item:last-child::before{display:none}
+.item.past::before{background:repeating-linear-gradient(var(--dim) 0 2px,transparent 2px 6px);opacity:.45}
+.node{position:absolute;left:0;top:7px;width:22px;height:22px;display:grid;place-items:center}
+.node b{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--dim);background:var(--void);display:block}
+.item.s-ok .node b{border-color:var(--jade)}
+.item.s-hot .node b{background:var(--ember);border-color:var(--ember);box-shadow:0 0 0 4px rgba(247,163,74,.13),0 0 13px rgba(247,163,74,.45)}
+.item.s-bad .node b{background:var(--rust);border-color:var(--rust)}
+
+.alert{display:flex;gap:11px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--rust);border-radius:11px;padding:12px 13px;margin-bottom:9px}
+.alert.warn{border-left-color:var(--ember)}
+.alert .ic{flex:0 0 auto;width:18px;height:18px;margin-top:1px}
+.alert .ic svg{width:18px;height:18px;stroke:var(--rust);fill:none;stroke-width:1.9;stroke-linecap:round}
+.alert.warn .ic svg{stroke:var(--ember)}
+.alert .tx{font-size:13.5px;line-height:1.5}
+.alert .hint{font-size:11.5px;color:var(--smoke);margin-top:3px}
+
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 var(--pad) 22px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px}
+.kpi .n{font-family:Lora,serif;font-size:25px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .l{font-size:10.5px;color:var(--smoke);letter-spacing:.05em;text-transform:uppercase;margin-top:4px}
+.kpi.hot .n{color:var(--ember)}
+.kpi.bad .n{color:var(--rust)}
+
+.row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--soft)}
+.row:last-child{border-bottom:none}
+.row .t{font-size:13.5px;line-height:1.4}
+.row .d{font-size:11px;color:var(--dim);margin-top:3px}
+.bars{display:flex;gap:13px;text-align:right;font-variant-numeric:tabular-nums}
+.bars div{font-size:10px;color:var(--smoke);letter-spacing:.04em;text-transform:uppercase}
+.bars b{display:block;font-size:15px;font-weight:600;color:var(--wax);text-transform:none;letter-spacing:0}
+.bars .hot b{color:var(--ember)}
+.bars .bad b{color:var(--rust)}
+
+.run{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:center;padding:11px 0;border-bottom:1px solid var(--soft)}
+.run:last-child{border-bottom:none}
+.run .dot{width:7px;height:7px;border-radius:50%;background:var(--jade)}
+.run.bad .dot{background:var(--rust)}
+.run .wf{font-size:13.5px;font-weight:500}
+.run .tm{font-size:11.5px;color:var(--dim);margin-top:2px;font-variant-numeric:tabular-nums}
+.run .st{font-size:11.5px;color:var(--smoke);text-align:right;font-variant-numeric:tabular-nums;line-height:1.45}
+
+.field{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 13px;margin-bottom:8px;transition:border-color .15s}
+.field:focus-within{border-color:var(--dim)}
+.field label{display:block;font-size:11px;color:var(--smoke);margin-bottom:2px;letter-spacing:.04em}
+.field input,.field textarea,.field select{font-size:14.5px;padding:0}
+.field textarea{resize:vertical;min-height:70px;line-height:1.5}
+.field .cnt{font-size:10.5px;color:var(--dim);text-align:right;margin-top:3px;font-variant-numeric:tabular-nums}
+.field .cnt.over{color:var(--rust)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.two .field{margin-bottom:0}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px}
+.switch.armed{border-color:var(--rust);background:rgba(196,87,75,.07)}
+.switch .hint{font-size:12px;color:var(--smoke);margin-top:3px;line-height:1.45}
+.toggle{flex:0 0 auto;width:45px;height:26px;border-radius:99px;background:var(--hi);border:1px solid var(--line);position:relative;transition:.18s}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--smoke);transition:.18s}
+.toggle[aria-checked="true"]{background:var(--deep);border-color:var(--ember)}
+.toggle[aria-checked="true"]::after{transform:translateX(19px);background:var(--ember)}
+
+.btn{border:1px solid var(--line);border-radius:11px;padding:12px 10px;font-size:14px;font-weight:500;text-align:center;background:var(--hi);transition:.15s;width:100%}
+.btn:hover{border-color:var(--dim)}
+.btn.primary{background:var(--ember);color:#231404;border-color:var(--ember);font-weight:600}
+.btn.primary:hover{background:#FFB264}
+.btn.danger{color:var(--rust);border-color:rgba(196,87,75,.33);background:transparent}
+.btn.danger:hover{background:rgba(196,87,75,.09)}
+.btn.small{padding:9px 8px;font-size:13px}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px var(--pad) 18px}
+.acts .wide{grid-column:1/-1}
+.acts3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+
+.scrim{position:fixed;inset:0;background:rgba(10,9,13,.74);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .22s;z-index:40}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;max-width:620px;margin:0 auto;background:var(--surface);
+  border:1px solid var(--line);border-bottom:none;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;
+  transform:translateY(103%);transition:transform .28s cubic-bezier(.32,.72,0,1);padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+.sheet.on{transform:translateY(0)}
+.grab{width:34px;height:4px;border-radius:99px;background:var(--line);margin:10px auto 2px}
+.sheet h2{font-family:Lora,serif;font-size:19px;font-weight:600;padding:12px var(--pad) 2px;line-height:1.3}
+.sheet .shsub{padding:0 var(--pad) 15px;font-size:12px;color:var(--smoke)}
+.thumb{padding:0 var(--pad) 15px}
+.thumb img{width:100%;border-radius:12px;border:1px solid var(--line);display:block}
+.excerpt{padding:0 var(--pad) 16px;font-size:13.5px;color:var(--smoke);line-height:1.6}
+.dialog{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%) scale(.97);z-index:60;width:min(340px,88vw);
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;opacity:0;pointer-events:none;transition:.18s}
+.dialog.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.dialog h3{font-family:Lora,serif;font-size:17px;margin-bottom:7px}
+.dialog p{font-size:13.5px;color:var(--smoke);line-height:1.5;margin-bottom:17px}
+.dialog .r{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.fab{position:fixed;z-index:35;right:max(var(--pad),calc(50vw - 310px + var(--pad)));
+  bottom:calc(var(--nav) + env(safe-area-inset-bottom) + 14px);width:52px;height:52px;border-radius:17px;
+  background:var(--ember);color:#231404;display:grid;place-items:center;
+  box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 0 1px rgba(247,163,74,.3);transition:.15s}
+.fab:hover{background:#FFB264;transform:translateY(-1px)}
+.fab svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;max-width:620px;margin:0 auto;
+  display:grid;grid-template-columns:repeat(5,1fr);background:rgba(22,21,27,.95);backdrop-filter:blur(16px);
+  border-top:1px solid var(--soft);padding-bottom:env(safe-area-inset-bottom)}
+nav button{padding:10px 2px 11px;font-size:10.5px;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:500;transition:color .15s;position:relative}
+nav button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{color:var(--ember)}
+nav .badge{position:absolute;top:5px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:99px;
+  background:var(--rust);color:#fff;font-size:9.5px;font-weight:700;display:grid;place-items:center;padding:0 4px}
+
+.empty{padding:44px var(--pad);text-align:center;color:var(--smoke)}
+.empty svg{width:32px;height:32px;stroke:var(--dim);fill:none;stroke-width:1.4;margin-bottom:13px}
+.empty p{font-size:13.5px;line-height:1.6;margin-bottom:15px}
+.empty .btn{display:inline-block;width:auto;padding:11px 22px}
+.skel{padding:0 var(--pad)}
+.sk{height:84px;border-radius:var(--r);background:linear-gradient(100deg,var(--surface) 30%,var(--hi) 50%,var(--surface) 70%);background-size:240% 100%;animation:sh 1.4s infinite;margin-bottom:10px}
+@keyframes sh{to{background-position:-140% 0}}
+.toast{position:fixed;left:50%;bottom:calc(var(--nav) + 22px);transform:translate(-50%,12px);background:var(--hi);
+  border:1px solid var(--line);padding:11px 18px;border-radius:11px;font-size:13.5px;z-index:70;opacity:0;
+  pointer-events:none;transition:.2s;max-width:88vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.bad{border-color:rgba(196,87,75,.5)}
+.banner{margin:0 var(--pad) 15px;padding:11px 13px;border-radius:11px;background:var(--glow);border:1px solid var(--deep);font-size:12.5px;line-height:1.5;word-break:break-word}
+.banner b{color:var(--ember)}
+.banner.err{background:rgba(196,87,75,.08);border-color:rgba(196,87,75,.45)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">AMORA<em>.</em>control</div>
+    <div class="hbar">
+      <span class="pill" id="pill"><i></i><span>đang chạy</span></span>
+      <button class="iconbtn" id="refresh" aria-label="Tải lại">
+        <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6"/></svg></button>
+    </div>
+  </header>
+  <main id="main"></main>
+</div>
+<button class="fab hidden" id="fab" aria-label="Thêm mới">
+  <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+<nav id="nav"></nav>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<div class="dialog" id="dialog" role="alertdialog"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═════════ lưu trữ ═════════ */
+const mem={};
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return mem[k]??null}},
+             set(k,v){try{localStorage.setItem(k,v)}catch(e){mem[k]=v}}};
+
+const S={tab:'home', seg:0, filter:'all', q:'',
+  apiUrl:store.get('ac.url')||'', apiKey:store.get('ac.key')||'',
+  web:[], social:[], seo:[], runs:[], insights:[], settings:{},
+  loading:true, open:null, busy:false};
+
+/* ═════════ từ vựng ═════════ */
+const WEB_FLOW=['IDEA','READY','PROCESSING','WAITING_APPROVAL','APPROVED','PUBLISHED'];
+const WEB={IDEA:{l:'Ý tưởng',c:''},READY:{l:'Chờ viết',c:''},PROCESSING:{l:'AI đang viết',c:'ai'},
+  WAITING_APPROVAL:{l:'Chờ bạn duyệt',c:'hot'},APPROVED:{l:'Đã duyệt',c:'ok'},
+  PUBLISHED:{l:'Đã đăng',c:'ok'},REWRITE:{l:'Cần viết lại',c:'bad'},REJECTED:{l:'Đã huỷ',c:'bad'}};
+const SOC={DRAFT:{l:'Chưa có ảnh',c:''},READY:{l:'Sẵn sàng đăng',c:'ok'},PUBLISHING:{l:'Đang đăng',c:'ok'},
+  LIVE:{l:'Đã đăng',c:'hot'},PARTIAL:{l:'Thiếu kênh',c:'bad'},FAILED:{l:'Lỗi',c:'bad'},DEAD:{l:'Cần xử lý',c:'bad'}};
+const SEOACT={
+  KEEP:{l:'Giữ nguyên',c:'ok',d:'Đang top, AI không được đụng'},
+  WATCH:{l:'Theo dõi',c:'',d:'Bài mới hoặc thiếu dữ liệu'},
+  NO_GSC_DATA:{l:'GSC không thấy URL',c:'bad',d:'published_url có thể sai — sửa tay'},
+  HUMAN_REVIEW:{l:'Cần bạn xem',c:'bad',d:'Đã tự sửa 2 lần không lên'},
+  CTR_FIX:{l:'Sửa tiêu đề + meta',c:'hot',d:'Top 10 nhưng ít người bấm'},
+  EXPAND:{l:'Thêm nội dung',c:'hot',d:'Hạng 4–20, có nhu cầu'},
+  REFRESH:{l:'Chỉnh sâu',c:'hot',d:'Click giảm hoặc tụt hạng'},
+  CANNIBALIZATION:{l:'Trùng từ khoá',c:'bad',d:'Nhiều trang tranh một truy vấn'},
+  RESEARCH_AGAIN:{l:'Lệch ý định',c:'bad',d:'Hạng >20 dù có nhu cầu'}};
+const CHANNEL={BOTH:'Fanpage + Instagram',IG:'Chỉ Instagram',FB:'Chỉ Fanpage'};
+const TABS=[
+  {k:'home',t:'Tổng quan',d:'M3 11l9-8 9 8M5 10v10h14V10'},
+  {k:'web',t:'Website',d:'M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18M21 12a9 9 0 1 0-18 0 9 9 0 0 0 18 0z'},
+  {k:'social',t:'Xã hội',d:'M12 3v18M12 21c-2 0-3.2-1.4-3.2-3.2 0-2.3 3.2-5 3.2-5s3.2 2.7 3.2 5C15.2 19.6 14 21 12 21z'},
+  {k:'seo',t:'SEO',d:'M4 19V9M10 19V4M16 19v-7M22 19H2'},
+  {k:'sys',t:'Hệ thống',d:'M12 8.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1'}];
+
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pv=s=>{if(!s)return null;const t=String(s).trim();
+  const d=new Date(t.includes('T')?t:t.replace(' ','T')+(t.length<=16?':00':''));return isNaN(d)?null:d};
+const p2=n=>String(n).padStart(2,'0');
+const DOW=['CN','T2','T3','T4','T5','T6','T7'];
+const fw=s=>{const d=pv(s);return d?`${DOW[d.getDay()]} ${p2(d.getDate())}/${p2(d.getMonth()+1)} · ${p2(d.getHours())}:${p2(d.getMinutes())}`:'chưa đặt giờ'};
+const fs_=s=>{const d=pv(s);return d?`${p2(d.getDate())}/${p2(d.getMonth()+1)} ${p2(d.getHours())}:${p2(d.getMinutes())}`:'—'};
+const ago=s=>{const d=pv(s);if(!d)return '';const m=Math.floor((Date.now()-d)/60000);
+  if(m<60)return m+' phút';if(m<1440)return Math.floor(m/60)+' giờ';return Math.floor(m/1440)+' ngày'};
+const nk=p=>{const d=new Date();return `${p}-${d.getFullYear()}${p2(d.getMonth()+1)}${p2(d.getDate())}-${Math.floor(Math.random()*900+100)}`};
+function toast(m,bad){const t=document.getElementById('toast');t.textContent=m;
+  t.className='toast on'+(bad?' bad':'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',2900)}
+
+/* ═════════ dữ liệu mẫu ═════════ */
+function demo(){return{
+web:[
+ {content_id:'SEO-MAP-175450-P01-S01',map_id:'MAP-175450-P01-S01',status:'WAITING_APPROVAL',title:'Nến trầm hương: chọn thế nào để không bị hắc',slug:'nen-tram-huong-chon-the-nao',focus_keyword:'nến thơm trầm hương',excerpt:'Trầm hương thật cháy chậm và toả mùi theo lớp. Mùi hắc thường đến từ hương liệu tổng hợp hoặc sáp paraffin rẻ, không phải từ trầm.',word_count:1840,audit_score:86,image_url:'',published_url:'',publish_at:'2026-08-10 20:30',content_type:'seo_blog',retry_count:0,error_message:'',updated_at:'2026-08-08 20:34',approval_url:'https://n8n.example/webhook-waiting/abc?action=approve&token=x'},
+ {content_id:'SEO-MAP-175450-P01-S02',map_id:'MAP-175450-P01-S02',status:'PROCESSING',title:'',slug:'',focus_keyword:'nến sáp đậu nành có tốt không',excerpt:'',word_count:0,audit_score:0,image_url:'',published_url:'',publish_at:'2026-08-12 20:30',content_type:'seo_blog',retry_count:0,error_message:'',updated_at:'2026-08-06 20:31',approval_url:''},
+ {content_id:'SEO-MAP-175450-P02-S01',map_id:'MAP-175450-P02-S01',status:'PUBLISHED',title:'Cách bảo quản nến thơm để giữ mùi lâu nhất',slug:'cach-bao-quan-nen-thom',focus_keyword:'cách bảo quản nến thơm',excerpt:'',word_count:1620,audit_score:91,image_url:'',published_url:'https://amorastudio.com.vn/cach-bao-quan-nen-thom',publish_at:'2026-07-29 20:30',content_type:'seo_blog',retry_count:0,error_message:'',updated_at:'2026-07-29 20:41',approval_url:''},
+ {content_id:'SEO-MAP-175450-P02-S02',map_id:'MAP-175450-P02-S02',status:'IDEA',title:'',slug:'',focus_keyword:'nến thơm cho phòng ngủ',excerpt:'',word_count:0,audit_score:0,image_url:'',published_url:'',publish_at:'2026-08-17 20:30',content_type:'seo_blog',retry_count:0,error_message:'',updated_at:'2026-08-06 10:00',approval_url:''},
+ {content_id:'SEO-MAP-175450-P03-S01',map_id:'MAP-175450-P03-S01',status:'REWRITE',title:'Nến thơm có hại không',slug:'nen-thom-co-hai-khong',focus_keyword:'nến thơm có hại không',excerpt:'',word_count:1210,audit_score:64,image_url:'',published_url:'',publish_at:'2026-08-05 20:30',content_type:'seo_blog',retry_count:1,error_message:'',updated_at:'2026-08-05 21:02',approval_url:''}],
+social:[
+ {post_key:'AM-2026-W33-01',publish_at:'2026-08-10 08:00',pillar:'NGHI_THUC',source:'MANUAL',channel:'BOTH',status:'LIVE',asset_key:'AST-0001',cdn_url:'',caption:'Nến trầm hương Tĩnh Tâm — đốt 20 phút trước khi ngồi thiền, khói trầm giúp nhịp thở chậm lại.',hashtags:'#amorastudio #nenthom #tramhuong',ai_prompt:'',last_error:'',retry_count:0},
+ {post_key:'AM-2026-W33-02',publish_at:'2026-08-13 20:00',pillar:'CAM_XUC',source:'AI',channel:'BOTH',status:'READY',asset_key:'AST-AI-20260812',cdn_url:'',caption:'Ba phút cuối ngày, tắt đèn và chỉ để lại một ngọn nến.',hashtags:'#amorastudio #ritualcandle',ai_prompt:'Cận cảnh ngọn nến sáp đậu nành cháy trong không gian tối, ánh vàng ấm',last_error:'',retry_count:0},
+ {post_key:'AM-2026-W33-03',publish_at:'2026-08-16 09:00',pillar:'SAN_PHAM',source:'MANUAL',channel:'IG',status:'DRAFT',asset_key:'',cdn_url:'',caption:'Bộ sưu tập mới: 4 hương cho 4 nghi thức trong ngày.',hashtags:'#amorastudio',ai_prompt:'',last_error:'',retry_count:0},
+ {post_key:'AM-2026-W32-03',publish_at:'2026-08-06 20:00',pillar:'CAM_XUC',source:'AI',channel:'BOTH',status:'FAILED',asset_key:'',cdn_url:'',caption:'Mùi hương đầu tiên bạn nhớ về nhà là mùi gì?',hashtags:'#amorastudio',ai_prompt:'Nến cháy cạnh cửa sổ mưa',last_error:'IG: Media download has failed',retry_count:2}],
+seo:[
+ {content_id:'SEO-MAP-175450-P02-S01',title:'Cách bảo quản nến thơm để giữ mùi lâu nhất',published_url:'https://amorastudio.com.vn/cach-bao-quan-nen-thom',refresh_action:'CTR_FIX',refresh_reason:'Hạng 6 nhưng CTR 1.1%, dưới mức kỳ vọng',refresh_priority:42,gsc_clicks:38,gsc_impressions:3420,gsc_ctr:0.011,gsc_position:6.2,last_monitored_at:'2026-08-03 02:18',refresh_stage:''},
+ {content_id:'SEO-MAP-175449-P01-S03',title:'Nến thơm handmade có gì khác nến công nghiệp',published_url:'https://amorastudio.com.vn/nen-thom-handmade',refresh_action:'EXPAND',refresh_reason:'Hạng 12, impression tăng nhưng thiếu chiều sâu',refresh_priority:31,gsc_clicks:19,gsc_impressions:2180,gsc_ctr:0.0087,gsc_position:12.4,last_monitored_at:'2026-08-03 02:18',refresh_stage:''},
+ {content_id:'SEO-MAP-175448-P01-S01',title:'Nến thơm trầm hương là gì',published_url:'https://amorastudio.com.vn/nen-tram-huong-la-gi',refresh_action:'KEEP',refresh_reason:'Hạng 2, CTR 5.4%, click ổn định',refresh_priority:0,gsc_clicks:214,gsc_impressions:3960,gsc_ctr:0.054,gsc_position:2.1,last_monitored_at:'2026-08-03 02:18',refresh_stage:''},
+ {content_id:'SEO-MAP-175447-P02-S02',title:'Chọn nến thơm theo mùa',published_url:'https://amorastudio.com.vn/nen-thom-theo-mua',refresh_action:'CANNIBALIZATION',refresh_reason:'Tranh truy vấn với bài nến phòng ngủ',refresh_priority:24,gsc_clicks:11,gsc_impressions:1290,gsc_ctr:0.0085,gsc_position:15.8,last_monitored_at:'2026-08-03 02:18',refresh_stage:''}],
+runs:[
+ {run_id:'RUN-20260808-0600',started_at:'2026-08-08 06:00',workflow:'WF4_INSIGHTS',items_in:2,items_ok:2,items_failed:0,duration_s:6,status:'OK',note:'snapshot D+1'},
+ {run_id:'RUN-20260806-2030',started_at:'2026-08-06 20:30',workflow:'AMORA2_CONTENT',items_in:1,items_ok:0,items_failed:1,duration_s:48,status:'FAIL',note:'Gemini image timeout'},
+ {run_id:'RUN-20260807-2000',started_at:'2026-08-07 20:00',workflow:'WF3_PUBLISHER',items_in:1,items_ok:0,items_failed:1,duration_s:11,status:'FAIL',note:'Media download has failed'},
+ {run_id:'RUN-20260803-0215',started_at:'2026-08-03 02:15',workflow:'AMORA3_SEO_LOOP',items_in:14,items_ok:14,items_failed:0,duration_s:126,status:'OK',note:'4 bài cần xử lý'},
+ {run_id:'RUN-20260807-0600',started_at:'2026-08-07 06:00',workflow:'WF2_MEDIA',items_in:1,items_ok:1,items_failed:0,duration_s:38,status:'OK',note:''}],
+insights:[
+ {post_key:'AM-2026-W33-01',platform:'instagram',age_days:7,metric:'reach',value:1604},
+ {post_key:'AM-2026-W33-01',platform:'instagram',age_days:7,metric:'saved',value:47},
+ {post_key:'AM-2026-W33-01',platform:'instagram',age_days:7,metric:'total_interactions',value:190}],
+settings:{KILL_SWITCH:'OFF',PUBLISH_DAYS:'mon,wed,fri',PUBLISH_HOUR:'20',PUBLISH_MINUTE:'30',POSTS_PER_DAY:'1',
+  ARTICLE_MIN_WORDS:'1400',AUDIT_PASS_SCORE:'80',REFRESH_ENABLED:'true',GSC_LOOKBACK_DAYS:'28',
+  MAX_REFRESH_ATTEMPT:'2',BRAND_TONE:'ấm, chậm, gợi cảm tinh tế, kể chuyện',
+  SOCIAL_SLOT_1:'Mon 08:00',SOCIAL_SLOT_2:'Thu 20:00',SOCIAL_SLOT_3:'Sun 09:00',
+  SOCIAL_PREP_AHEAD_HOURS:'48',SOCIAL_MAX_RETRY:'3'}
+}}
+
+async function api(action,payload={}){
+  if(!S.apiUrl){await new Promise(r=>setTimeout(r,160));const d=demo();
+    return {web_list:{web:d.web},social_list:{social:d.social},seo_list:{seo:d.seo},
+      runs:{runs:d.runs},insights:{insights:d.insights},settings:{settings:d.settings}}[action]||{ok:true,demo:true}}
+  const r=await fetch(S.apiUrl,{method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':S.apiKey},
+    body:JSON.stringify({action,...payload})});
+  if(!r.ok)throw new Error('n8n trả về '+r.status);
+  const j=await r.json();
+  if(j.error)throw new Error(j.error);
+  return j;
+}
+
+/* ═════════ cảnh báo suy ra từ dữ liệu ═════════ */
+function alerts(){
+  const a=[];
+  const stuck=S.web.filter(w=>w.status==='PROCESSING'&&pv(w.updated_at)&&(Date.now()-pv(w.updated_at))>30*60000);
+  if(stuck.length)a.push({lv:'bad',t:`${stuck.length} bài website kẹt ở "AI đang viết" quá 30 phút`,
+    h:'AMORA 2 nhiều khả năng chết giữa chừng. Bấm Gỡ kẹt để đưa về hàng đợi.',act:'unstick'});
+  const fails=S.runs.filter(r=>String(r.status).toUpperCase()!=='OK');
+  if(fails.length)a.push({lv:'bad',t:`${fails.length} lượt chạy thất bại gần đây`,
+    h:fails.map(f=>f.workflow).join(', '),act:'runs'});
+  const supply=S.web.filter(w=>['IDEA','READY'].includes(w.status)).length;
+  if(supply<5)a.push({lv:'warn',t:`Hàng đợi website chỉ còn ${supply} bài`,
+    h:'Chạy AMORA 1 để dựng thêm topical map trước khi cạn.',act:'amora1'});
+  const noAsset=S.social.filter(p=>p.status==='DRAFT'&&pv(p.publish_at)&&(pv(p.publish_at)-Date.now())<48*3600000);
+  if(noAsset.length)a.push({lv:'warn',t:`${noAsset.length} bài xã hội sắp đến giờ mà chưa có ảnh`,h:'WF2 sẽ lo, nhưng nếu là ảnh chụp thì bạn phải up lên Drive.'});
+  const seoTodo=S.seo.filter(s=>['CTR_FIX','EXPAND','REFRESH','CANNIBALIZATION'].includes(s.refresh_action)).length;
+  if(seoTodo)a.push({lv:'warn',t:`${seoTodo} bài đã đăng cần chỉnh SEO`,h:'AMORA 3 đã chấm xong, xem tab SEO.',act:'seo'});
+  return a;
+}
+
+/* ═════════ view: tổng quan ═════════ */
+function vHome(){
+  const pend=S.web.filter(w=>w.status==='WAITING_APPROVAL');
+  const al=alerts();
+  let h=`<h1>Tổng quan</h1><p class="sub">${new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'numeric'})}</p>`;
+  if(!S.apiUrl)h+=`<div class="banner">Đang chạy <b>dữ liệu mẫu</b>. Vào Hệ thống → Kết nối để đấu vào hai Google Sheet thật.</div>`;
+  if(S.loading)return h+skel(3);
+
+  if(pend.length){
+    h+=`<div class="group"><div class="glabel">Cần bạn duyệt <span class="n">${pend.length}</span></div>`;
+    for(const w of pend){
+      h+=`<button class="card hot" data-open="web:${esc(w.content_id)}">
+        <div class="eyebrow"><span class="kw">${esc(w.focus_keyword||'')}</span>${w.audit_score>0?`<span>SEO ${w.audit_score}</span>`:''}<span>${ago(w.updated_at)} trước</span></div>
+        <div class="ttl serif">${esc(w.title||'Chưa có tiêu đề')}</div>
+        <div class="meta"><span class="tag hot">Chờ bạn duyệt</span>
+          ${w.word_count>0?`<span class="nums"><b>${Number(w.word_count).toLocaleString('vi')}</b> từ</span>`:''}</div></button>`;
+    }
+    h+='</div>';
+  }
+
+  if(al.length){
+    h+=`<div class="group"><div class="glabel">Cần chú ý</div>`;
+    for(const x of al){
+      h+=`<div class="alert ${x.lv==='warn'?'warn':''}"><div class="ic">
+        <svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01M10.3 3.9L2.4 17.4A2 2 0 0 0 4.1 20.4h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div>
+        <div><div class="tx">${esc(x.t)}</div><div class="hint">${esc(x.h)}</div></div></div>`;
+    }
+    h+='</div>';
+  }
+  if(!pend.length&&!al.length)
+    h+=`<div class="group"><div class="alert warn" style="border-left-color:var(--jade)"><div class="ic">
+      <svg viewBox="0 0 24 24" style="stroke:var(--jade)"><path d="M20 6L9 17l-5-5"/></svg></div>
+      <div><div class="tx">Không có gì cần bạn xử lý</div><div class="hint">Bảy workflow đang chạy bình thường.</div></div></div></div>`;
+
+  const wPub=S.web.filter(w=>w.status==='PUBLISHED').length;
+  const sPub=S.social.filter(p=>p.status==='LIVE').length;
+  const clicks=S.seo.reduce((s,x)=>s+Number(x.gsc_clicks||0),0);
+  const saved=S.insights.filter(i=>i.metric==='saved'&&i.age_days===7).reduce((s,i)=>s+Number(i.value||0),0);
+  h+=`<div class="group"><div class="glabel">28 ngày qua</div></div>
+  <div class="kpis">
+    <div class="kpi"><div class="n">${wPub}</div><div class="l">bài website</div></div>
+    <div class="kpi"><div class="n">${sPub}</div><div class="l">bài xã hội</div></div>
+    <div class="kpi hot"><div class="n">${clicks.toLocaleString('vi')}</div><div class="l">click từ Google</div></div>
+    <div class="kpi hot"><div class="n">${saved}</div><div class="l">lượt lưu Instagram</div></div>
+  </div>`;
+  return h;
+}
+
+/* ═════════ view: website ═════════ */
+function vWeb(){
+  const all=S.web.filter(w=>w.status!=='DELETED');
+  const n={all:all.length,
+    todo:all.filter(w=>['WAITING_APPROVAL','REWRITE'].includes(w.status)).length,
+    prod:all.filter(w=>['IDEA','READY','PROCESSING'].includes(w.status)).length,
+    done:all.filter(w=>w.status==='PUBLISHED').length};
+  let list=all;
+  if(S.q){const q=S.q.toLowerCase();
+    list=list.filter(w=>((w.title||'')+(w.focus_keyword||'')+(w.content_id||'')).toLowerCase().includes(q))}
+  if(S.filter==='todo')list=list.filter(w=>['WAITING_APPROVAL','REWRITE'].includes(w.status));
+  if(S.filter==='prod')list=list.filter(w=>['IDEA','READY','PROCESSING'].includes(w.status));
+  if(S.filter==='done')list=list.filter(w=>w.status==='PUBLISHED');
+  list=[...list].sort((a,b)=>(pv(a.publish_at)||0)-(pv(b.publish_at)||0));
+
+  let h=`<h1>Bài website</h1><p class="sub">CONTENT_QUEUE · <b>${n.prod}</b> đang sản xuất${n.todo?` · <span class="warn">${n.todo} cần bạn</span>`:''}</p>`;
+  h+=toolbar([['all','Tất cả',n.all],['todo','Cần bạn',n.todo],['prod','Đang làm',n.prod],['done','Đã đăng',n.done]],'Tìm theo tiêu đề hoặc từ khoá');
+  if(S.loading)return h+skel(3);
+  if(!list.length)return h+empty('M4 6h16M4 12h16M4 18h10','Không có bài nào khớp.','Thêm từ khoá','web');
+
+  h+='<div class="group">';
+  for(const w of list){
+    const st=WEB[w.status]||{l:w.status,c:''};
+    const idx=WEB_FLOW.indexOf(w.status);
+    const bad=['REWRITE','REJECTED'].includes(w.status);
+    h+=`<button class="card ${w.status==='WAITING_APPROVAL'?'hot':bad?'bad':''}" data-open="web:${esc(w.content_id)}">
+      <div class="eyebrow"><span class="kw">${esc(w.focus_keyword||'chưa có từ khoá')}</span>
+        <span>${fs_(w.publish_at)}</span></div>
+      <div class="ttl serif ${w.title?'':'muted'}">${esc(w.title||'Chưa đặt tiêu đề')}</div>
+      <div class="rail">${WEB_FLOW.map((_,i)=>`<div class="sg ${bad?'bad':(idx>=i&&idx>=0?'on':'')}"></div>`).join('')}</div>
+      <div class="stages">${['Ý tưởng','Chờ viết','AI viết','Chờ duyệt','Đã duyệt','Đã đăng'].map((s,i)=>`<span class="${i===idx?'on':''}">${s}</span>`).join('')}</div>
+      <div class="meta" style="margin-top:11px"><span class="tag ${st.c}">${st.l}</span>
+        ${w.word_count>0?`<span class="nums"><b>${Number(w.word_count).toLocaleString('vi')}</b> từ</span>`:''}
+        ${w.audit_score>0?`<span class="nums">SEO <b>${w.audit_score}</b></span>`:''}
+        ${w.retry_count>0?`<span class="tag bad">thử lại ${w.retry_count}×</span>`:''}</div>
+      ${w.error_message?`<div class="errline">${esc(String(w.error_message).slice(0,74))}</div>`:''}
+    </button>`;
+  }
+  return h+'</div>';
+}
+
+/* ═════════ view: xã hội ═════════ */
+function vSocial(){
+  const all=S.social.filter(p=>p.status!=='DELETED');
+  const n={all:all.length,
+    wait:all.filter(p=>['DRAFT','READY','PUBLISHING'].includes(p.status)).length,
+    bad:all.filter(p=>['FAILED','DEAD','PARTIAL'].includes(p.status)).length,
+    done:all.filter(p=>p.status==='LIVE').length};
+  let list=all;
+  if(S.q){const q=S.q.toLowerCase();
+    list=list.filter(p=>((p.caption||'')+(p.hashtags||'')+(p.post_key||'')).toLowerCase().includes(q))}
+  if(S.filter==='wait')list=list.filter(p=>['DRAFT','READY','PUBLISHING'].includes(p.status));
+  if(S.filter==='bad')list=list.filter(p=>['FAILED','DEAD','PARTIAL'].includes(p.status));
+  if(S.filter==='done')list=list.filter(p=>p.status==='LIVE');
+  list=[...list].sort((a,b)=>(pv(a.publish_at)||0)-(pv(b.publish_at)||0));
+
+  let h=`<h1>Mạng xã hội</h1><p class="sub"><b>${n.wait}</b> bài đang chờ${n.bad?` · <span class="warn">${n.bad} cần xử lý</span>`:''}</p>`;
+  h+=toolbar([['all','Tất cả',n.all],['wait','Đang chờ',n.wait],['bad','Cần xử lý',n.bad],['done','Đã đăng',n.done]],'Tìm theo nội dung hoặc mã bài');
+  if(S.loading)return h+skel(3);
+  if(!list.length)return h+empty('M12 3v18M9 8h6','Không có bài nào khớp.','Thêm bài mới','social');
+
+  const now=Date.now();
+  h+='<div class="group">';
+  for(const p of list){
+    const st=SOC[p.status]||SOC.DRAFT;
+    const d=pv(p.publish_at),past=d&&d<now;
+    const ins=S.insights.filter(i=>i.post_key===p.post_key&&i.age_days===7);
+    const reach=ins.find(i=>i.metric==='reach')?.value,sv=ins.find(i=>i.metric==='saved')?.value;
+    h+=`<div class="item s-${st.c==='hot'?'hot':st.c==='bad'?'bad':st.c==='ok'?'ok':''} ${past?'past':''}">
+      <div class="node"><b></b></div>
+      <button class="card" data-open="social:${esc(p.post_key)}" style="margin-bottom:14px">
+        <div class="eyebrow">${fw(p.publish_at)} <span style="color:var(--dim);text-transform:none;letter-spacing:0;font-weight:400">${CHANNEL[p.channel]||''}</span></div>
+        <div class="ttl ${p.caption?'':'muted'}">${esc(p.caption||'Chưa có nội dung')}</div>
+        <div class="meta"><span class="tag ${st.c}">${st.l}</span>
+          ${p.source==='AI'?'<span class="tag ai">ảnh AI</span>':''}
+          ${reach?`<span class="nums"><b>${reach.toLocaleString('vi')}</b> reach${sv?` · <b>${sv}</b> lưu`:''}</span>`:''}</div>
+        ${p.last_error?`<div class="errline">${esc(String(p.last_error).slice(0,70))}</div>`:''}
+      </button></div>`;
+  }
+  return h+'</div>';
+}
+
+/* ═════════ view: SEO ═════════ */
+function vSeo(){
+  const act=S.seo.filter(s=>['CTR_FIX','EXPAND','REFRESH','CANNIBALIZATION','RESEARCH_AGAIN','HUMAN_REVIEW','NO_GSC_DATA'].includes(s.refresh_action))
+    .sort((a,b)=>Number(b.refresh_priority||0)-Number(a.refresh_priority||0));
+  const keep=S.seo.filter(s=>['KEEP','WATCH'].includes(s.refresh_action));
+  const last=S.seo[0]?.last_monitored_at;
+
+  let h=`<h1>Sức khoẻ SEO</h1><p class="sub">AMORA 3 chấm lần cuối ${last?ago(last)+' trước':'chưa có'} · <b>${act.length}</b> bài cần chỉnh</p>`;
+  if(S.loading)return h+skel(3);
+  if(!S.seo.length)return h+empty('M4 19V9M10 19V4M16 19v-7','Chưa có dữ liệu GSC.<br>AMORA 3 chạy vào thứ 2 hằng tuần.');
+
+  if(act.length){
+    h+='<div class="group"><div class="glabel">Cần chỉnh — xếp theo click ước lấy lại</div>';
+    for(const s of act){
+      const a=SEOACT[s.refresh_action]||{l:s.refresh_action,c:'',d:''};
+      h+=`<button class="card ${a.c==='bad'?'bad':''}" data-open="seo:${esc(s.content_id)}">
+        <div class="eyebrow"><span class="tag ${a.c}">${a.l}</span>
+          ${Number(s.refresh_priority)>0?`<span class="nums">ưu tiên <b>${s.refresh_priority}</b></span>`:''}</div>
+        <div class="ttl serif">${esc(s.title||s.content_id)}</div>
+        <div class="meta">
+          <span class="nums">hạng <b>${Number(s.gsc_position||0).toFixed(1)}</b></span>
+          <span class="nums">click <b>${Number(s.gsc_clicks||0).toLocaleString('vi')}</b></span>
+          <span class="nums">CTR <b>${(Number(s.gsc_ctr||0)*100).toFixed(1)}%</b></span></div>
+        <div class="errline" style="color:var(--smoke)">${esc(s.refresh_reason||a.d)}</div>
+      </button>`;
+    }
+    h+='</div>';
+  }
+  if(keep.length){
+    h+='<div class="group"><div class="glabel">Đang ổn — AI không được đụng</div>';
+    for(const s of keep){
+      const a=SEOACT[s.refresh_action]||{l:s.refresh_action,c:''};
+      h+=`<div class="row"><div><div class="t">${esc(s.title||s.content_id)}</div>
+        <div class="d">${a.l} · ${esc(s.refresh_reason||'')}</div></div>
+        <div class="bars"><div class="hot">click<b>${Number(s.gsc_clicks||0)}</b></div>
+        <div>hạng<b>${Number(s.gsc_position||0).toFixed(1)}</b></div></div></div>`;
+    }
+    h+='</div>';
+  }
+  return h;
+}
+
+/* ═════════ view: hệ thống ═════════ */
+function vSys(){
+  let h=`<h1>Hệ thống</h1><p class="sub">Nhật ký, chạy tay và toàn bộ cấu hình</p>
+  <div class="seg">${['Nhật ký','Chạy tay','Cài đặt'].map((t,i)=>
+    `<button data-seg="${i}" class="${S.seg===i?'on':''}">${t}</button>`).join('')}</div>`;
+
+  if(S.seg===0){
+    const runs=[...S.runs].sort((a,b)=>(pv(b.started_at)||0)-(pv(a.started_at)||0));
+    if(S.loading)return h+skel(4);
+    if(!runs.length)return h+empty('M4 5h16M4 12h16M4 19h10','Chưa có lượt chạy nào được ghi lại.');
+    h+='<div class="group">';
+    for(const r of runs){
+      const bad=String(r.status).toUpperCase()!=='OK';
+      h+=`<div class="run ${bad?'bad':''}"><div class="dot"></div>
+        <div><div class="wf">${esc(r.workflow||'—')}</div>
+          <div class="tm">${fs_(r.started_at)}${r.note?' · '+esc(String(r.note).slice(0,40)):''}</div></div>
+        <div class="st">${r.items_ok??0}/${r.items_in??0}<br>${r.duration_s??0}s</div></div>`;
+    }
+    return h+'</div>';
+  }
+
+  if(S.seg===1){
+    return h+`<div class="group"><div class="glabel">Nhánh website</div>
+      <div class="acts" style="padding:0 0 16px">
+        <button class="btn" data-run="HOOK_AMORA1">Dựng topical map</button>
+        <button class="btn" data-run="HOOK_AMORA2">Viết bài kế tiếp</button>
+        <button class="btn wide" data-run="HOOK_AMORA3">Chấm SEO toàn site</button></div>
+      <div class="glabel">Nhánh mạng xã hội</div>
+      <div class="acts" style="padding:0 0 16px">
+        <button class="btn" data-run="HOOK_WF2">Chuẩn bị ảnh</button>
+        <button class="btn" data-run="HOOK_WF3">Đăng bài chờ</button>
+        <button class="btn wide" data-run="HOOK_WF4">Thu số liệu Meta</button></div>
+      <div class="glabel">Bảo trì</div>
+      <button class="btn danger" data-act2="unstick">Gỡ bài kẹt ở "AI đang viết"</button>
+      <div class="banner" style="margin:12px 0 0">Nút chạy tay gọi thẳng webhook của từng workflow. Địa chỉ lấy từ <b>RESEARCH_SETTINGS</b>, app không nhìn thấy.</div>
+    </div>`;
+  }
+
+  const c=S.settings,off=String(c.KILL_SWITCH||'OFF').toUpperCase()==='ON';
+  const f=(k,l,ph)=>`<div class="field"><label>${l}</label><input id="c_${k}" value="${esc(c[k]||'')}" placeholder="${ph||''}"></div>`;
+  return h+`<div class="group"><div class="glabel">Kết nối</div>
+    <div class="field"><label>Địa chỉ webhook n8n</label>
+      <input id="f_url" placeholder="https://n8n.cua-ban.com/webhook/amora-control" value="${esc(S.apiUrl)}"></div>
+    <div class="field"><label>Khoá truy cập</label>
+      <input id="f_key" type="password" placeholder="chuỗi bí mật khớp với n8n" value="${esc(S.apiKey)}"></div>
+    <button class="btn" id="b_conn">Lưu và kết nối</button></div>
+
+  <div class="group"><div class="glabel">Vận hành</div>
+    <div class="switch ${off?'armed':''}">
+      <div><div>Tạm dừng toàn bộ</div>
+        <div class="hint">${off?'Đang bật. Không bài nào được đăng ở cả hai nhánh.':'Chặn mọi lượt đăng website lẫn mạng xã hội.'}</div></div>
+      <button class="toggle" id="t_kill" role="switch" aria-checked="${off}" aria-label="Tạm dừng toàn bộ"></button></div></div>
+
+  <div class="group"><div class="glabel">Website — RESEARCH_SETTINGS</div>
+    <div class="two">${f('PUBLISH_DAYS','Ngày đăng','mon,wed,fri')}${f('POSTS_PER_DAY','Bài mỗi ngày')}</div>
+    <div class="two">${f('PUBLISH_HOUR','Giờ đăng')}${f('PUBLISH_MINUTE','Phút')}</div>
+    <div class="two">${f('ARTICLE_MIN_WORDS','Số từ tối thiểu')}${f('AUDIT_PASS_SCORE','Điểm SEO đạt')}</div>
+    <div class="field"><label>Giọng thương hiệu</label><textarea id="c_BRAND_TONE" style="min-height:56px">${esc(c.BRAND_TONE||'')}</textarea></div></div>
+
+  <div class="group"><div class="glabel">SEO Growth Loop</div>
+    <div class="two">${f('GSC_LOOKBACK_DAYS','Số ngày lấy GSC')}${f('MAX_REFRESH_ATTEMPT','Số lần tự sửa tối đa')}</div>
+    <div class="field"><label>Cho phép tự chỉnh bài (REFRESH_ENABLED)</label>
+      <select id="c_REFRESH_ENABLED">
+        <option value="true" ${String(c.REFRESH_ENABLED)==='true'?'selected':''}>Có — AMORA 3 được gọi LLM sửa bài</option>
+        <option value="false" ${String(c.REFRESH_ENABLED)==='false'?'selected':''}>Không — chỉ theo dõi, không sửa</option>
+      </select></div></div>
+
+  <div class="group"><div class="glabel">Mạng xã hội</div>
+    <div class="two">${f('SOCIAL_SLOT_1','Khung giờ 1','Mon 08:00')}${f('SOCIAL_SLOT_2','Khung giờ 2','Thu 20:00')}</div>
+    <div class="two">${f('SOCIAL_SLOT_3','Khung giờ 3','Sun 09:00')}${f('SOCIAL_PREP_AHEAD_HOURS','Chuẩn bị ảnh trước (giờ)')}</div>
+    ${f('SOCIAL_MAX_RETRY','Số lần thử lại khi lỗi')}
+    <button class="btn" id="b_cfg">Lưu toàn bộ cài đặt</button></div>`;
+}
+
+/* ═════════ mảnh dùng chung ═════════ */
+function toolbar(chips,ph){
+  return `<div class="tools"><div class="search">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="q" placeholder="${ph}" value="${esc(S.q)}"></div>
+    <div class="chips">${chips.map(([k,l,n])=>
+      `<button class="chip ${S.filter===k?'on':''}" data-filter="${k}">${l}<span class="c">${n}</span></button>`).join('')}</div></div>`;
+}
+const skel=n=>`<div class="skel">${'<div class="sk"></div>'.repeat(n)}</div>`;
+const empty=(d,m,b,a)=>`<div class="empty"><svg viewBox="0 0 24 24"><path d="${d}"/></svg><p>${m}</p>${b?`<button class="btn" data-new="${a}">${b}</button>`:''}</div>`;
+
+/* ═════════ bảng chi tiết ═════════ */
+function shWeb(id){
+  const w=S.web.find(x=>x.content_id===id); if(!w)return;
+  S.open={kind:'web',key:id};
+  const st=WEB[w.status]||{l:w.status,c:''};
+  const canApprove=w.status==='WAITING_APPROVAL'&&w.approval_url;
+  const stuck=w.status==='PROCESSING'&&pv(w.updated_at)&&(Date.now()-pv(w.updated_at))>30*60000;
+  document.getElementById('sheet').innerHTML=`<div class="grab"></div>
+  <h2>${esc(w.title||w.focus_keyword||id)}</h2>
+  <p class="shsub">${esc(id)} · ${st.l}${w.word_count>0?` · ${Number(w.word_count).toLocaleString('vi')} từ`:''}${w.audit_score>0?` · SEO ${w.audit_score}`:''}</p>
+  ${stuck?`<div class="banner err">Bài này kẹt ở "AI đang viết" đã ${ago(w.updated_at)}. AMORA 2 nhiều khả năng đã chết giữa chừng — bấm Gỡ kẹt để đưa về hàng đợi.</div>`:''}
+  ${w.error_message?`<div class="banner err">${esc(w.error_message)}</div>`:''}
+  ${w.published_url?`<div class="banner">Đã đăng tại <b>${esc(w.published_url)}</b></div>`:''}
+  ${w.image_url?`<div class="thumb"><img src="${esc(w.image_url)}" alt="" onerror="this.parentNode.style.display='none'"></div>`:''}
+  ${w.excerpt?`<div class="excerpt">${esc(w.excerpt)}</div>`:''}
+  <div class="group">
+    <div class="field"><label>Từ khoá chính</label><input id="e_focus_keyword" value="${esc(w.focus_keyword)}"></div>
+    <div class="field"><label>Tiêu đề</label><textarea id="e_title" style="min-height:52px">${esc(w.title)}</textarea></div>
+    <div class="two">
+      <div class="field"><label>Đường dẫn</label><input id="e_slug" value="${esc(w.slug)}"></div>
+      <div class="field"><label>Hẹn đăng</label><input id="e_publish_at" value="${esc(w.publish_at)}"></div></div>
+  </div>
+  ${canApprove?`<div class="group"><div class="glabel">Quyết định</div>
+    <div class="acts3">
+      <button class="btn primary small" data-act="approve">Duyệt đăng</button>
+      <button class="btn small" data-act="rewrite">Viết lại</button>
+      <button class="btn danger small" data-act="reject">Huỷ</button></div>
+    <div class="banner" style="margin:11px 0 0">Ba nút này gọi thẳng vào lượt chạy AMORA 2 đang tạm dừng — giống hệt bấm link trong Telegram.</div></div>`:''}
+  <div class="acts">
+    <button class="btn primary wide" data-act="save">Lưu thay đổi</button>
+    ${stuck?'<button class="btn danger wide" data-act="unstick">Gỡ kẹt, đưa về hàng đợi</button>':''}
+    ${w.status==='REWRITE'?'<button class="btn wide" data-act="requeue">Đưa lại vào hàng đợi viết</button>':''}
+    <button class="btn wide" data-act="close">Đóng</button>
+  </div>`;
+  show();
+}
+
+function shSocial(key){
+  const isNew=!key;
+  const p=isNew?{post_key:nk('AM'),publish_at:'',pillar:'CAM_XUC',source:'MANUAL',channel:'BOTH',
+    status:'DRAFT',caption:'',hashtags:'',ai_prompt:'',cdn_url:'',last_error:''}:S.social.find(x=>x.post_key===key);
+  if(!p)return;
+  S.open={kind:'social',key:p.post_key,isNew};
+  const st=SOC[p.status]||SOC.DRAFT;
+  document.getElementById('sheet').innerHTML=`<div class="grab"></div>
+  <h2>${isNew?'Bài mới':fw(p.publish_at)}</h2>
+  <p class="shsub">${esc(p.post_key)}${isNew?'':` · ${st.l} · ${CHANNEL[p.channel]||''}`}</p>
+  ${p.last_error?`<div class="banner err">${esc(p.last_error)}</div>`:''}
+  ${p.cdn_url?`<div class="thumb"><img src="${esc(p.cdn_url)}" alt="" onerror="this.parentNode.style.display='none'"></div>`:''}
+  <div class="group">
+    <div class="field"><label>Nội dung bài</label><textarea id="e_caption">${esc(p.caption)}</textarea>
+      <div class="cnt" id="cnt"></div></div>
+    <div class="field"><label>Hashtag</label><textarea id="e_hashtags" style="min-height:48px">${esc(p.hashtags)}</textarea></div>
+    <div class="two">
+      <div class="field"><label>Giờ đăng</label><input id="e_publish_at" value="${esc(p.publish_at)}" placeholder="2026-08-16 09:00"></div>
+      <div class="field"><label>Kênh</label><select id="e_channel">
+        ${Object.entries(CHANNEL).map(([k,v])=>`<option value="${k}" ${p.channel===k?'selected':''}>${v}</option>`).join('')}</select></div></div>
+    <div class="two">
+      <div class="field"><label>Chủ đề</label><select id="e_pillar">
+        ${Object.entries({NGHI_THUC:'Nghi thức',CAM_XUC:'Cảm xúc',SAN_PHAM:'Sản phẩm',KIEN_THUC:'Kiến thức'})
+          .map(([k,v])=>`<option value="${k}" ${p.pillar===k?'selected':''}>${v}</option>`).join('')}</select></div>
+      <div class="field"><label>Nguồn ảnh</label><select id="e_source">
+        <option value="MANUAL" ${p.source==='MANUAL'?'selected':''}>Ảnh chụp</option>
+        <option value="AI" ${p.source==='AI'?'selected':''}>AI tạo</option></select></div></div>
+    <div class="field"><label>Mô tả ảnh cho AI</label><textarea id="e_ai_prompt" placeholder="Chỉ dùng khi nguồn ảnh là AI">${esc(p.ai_prompt)}</textarea></div>
+  </div>
+  <div class="acts">
+    <button class="btn primary wide" data-act="save">${isNew?'Tạo bài':'Lưu thay đổi'}</button>
+    ${isNew?'<button class="btn wide" data-act="close">Huỷ</button>':`
+      ${p.status!=='LIVE'?'<button class="btn" data-act="publish_now">Đăng ngay</button>':'<button class="btn" disabled>Đã đăng</button>'}
+      <button class="btn" data-act="regen">Lấy ảnh mới</button>
+      <button class="btn" data-act="duplicate">Nhân bản</button>
+      ${['FAILED','DEAD','PARTIAL'].includes(p.status)?'<button class="btn" data-act="retry">Thử lại</button>':'<button class="btn" data-act="close">Đóng</button>'}
+      <button class="btn danger wide" data-act="delete">Xoá bài này</button>`}
+  </div>`;
+  show();
+}
+
+function shSeo(id){
+  const s=S.seo.find(x=>x.content_id===id); if(!s)return;
+  S.open={kind:'seo',key:id};
+  const a=SEOACT[s.refresh_action]||{l:s.refresh_action,c:'',d:''};
+  document.getElementById('sheet').innerHTML=`<div class="grab"></div>
+  <h2>${esc(s.title||id)}</h2>
+  <p class="shsub">${esc(id)} · chấm lúc ${fs_(s.last_monitored_at)}</p>
+  <div class="group"><div class="glabel">AMORA 3 kết luận</div>
+    <div class="alert ${a.c==='bad'?'':'warn'}"><div class="ic">
+      <svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01M10.3 3.9L2.4 17.4A2 2 0 0 0 4.1 20.4h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div>
+      <div><div class="tx">${a.l}</div><div class="hint">${esc(s.refresh_reason||a.d)}</div></div></div></div>
+  <div class="kpis" style="padding-bottom:16px">
+    <div class="kpi"><div class="n">${Number(s.gsc_position||0).toFixed(1)}</div><div class="l">hạng trung bình</div></div>
+    <div class="kpi hot"><div class="n">${Number(s.gsc_clicks||0).toLocaleString('vi')}</div><div class="l">click 28 ngày</div></div>
+    <div class="kpi"><div class="n">${Number(s.gsc_impressions||0).toLocaleString('vi')}</div><div class="l">lượt hiện</div></div>
+    <div class="kpi"><div class="n">${(Number(s.gsc_ctr||0)*100).toFixed(1)}%</div><div class="l">tỷ lệ bấm</div></div></div>
+  ${s.published_url?`<div class="group"><div class="banner">${esc(s.published_url)}</div></div>`:''}
+  <div class="acts">
+    ${['CTR_FIX','EXPAND','REFRESH'].includes(s.refresh_action)?
+      '<button class="btn primary wide" data-act="run_refresh">Cho AMORA 3 chỉnh bài này</button>':''}
+    <button class="btn wide" data-act="mark_keep">Đánh dấu giữ nguyên</button>
+    <button class="btn wide" data-act="close">Đóng</button></div>`;
+  show();
+}
+
+function show(){
+  document.getElementById('scrim').classList.add('on');
+  const s=document.getElementById('sheet'); s.classList.add('on'); s.scrollTop=0;
+  const ta=document.getElementById('e_caption');
+  if(ta){const c=document.getElementById('cnt');
+    const u=()=>{c.textContent=`${ta.value.length} / 2200`;c.className='cnt'+(ta.value.length>2200?' over':'')};
+    ta.oninput=u;u()}
+}
+function hide(){document.getElementById('sheet').classList.remove('on');
+  document.getElementById('scrim').classList.remove('on');S.open=null}
+function ask(title,msg,ok,fn){
+  const d=document.getElementById('dialog');
+  d.innerHTML=`<h3>${title}</h3><p>${msg}</p><div class="r">
+    <button class="btn" data-dlg="no">Huỷ</button><button class="btn danger" data-dlg="yes">${ok}</button></div>`;
+  d.classList.add('on');document.getElementById('scrim').classList.add('on');
+  d.onclick=e=>{const b=e.target.closest('[data-dlg]');if(!b)return;d.classList.remove('on');
+    if(!S.open)document.getElementById('scrim').classList.remove('on');
+    if(b.dataset.dlg==='yes')fn()};
+}
+
+/* ═════════ hành động ═════════ */
+const F={web:['focus_keyword','title','slug','publish_at'],
+  social:['caption','hashtags','publish_at','channel','pillar','source','ai_prompt']};
+const rf=k=>{const o={};for(const x of (F[k]||[])){const el=document.getElementById('e_'+x);if(el)o[x]=el.value}return o};
+
+async function act(op){
+  if(!S.open||S.busy)return;
+  if(op==='close')return hide();
+  const {kind,key,isNew}=S.open;
+
+  if(op==='delete')return ask('Xoá bài này?',
+    'Bài sẽ biến khỏi danh sách. Dòng vẫn nằm trong Google Sheet với trạng thái đã xoá.',
+    'Xoá',()=>send('social_write',{op:'delete',patch:{post_key:key}},'Đã xoá'));
+
+  if(['approve','rewrite','reject'].includes(op)){
+    const L={approve:['Duyệt đăng bài này?','AMORA 2 sẽ đăng lên WordPress ngay.','Duyệt'],
+      rewrite:['Yêu cầu viết lại?','Bài quay về trạng thái REWRITE, bạn chỉnh chủ đề rồi cho chạy lại.','Viết lại'],
+      reject:['Huỷ bài này?','Bài bị đánh REJECTED và không đăng nữa.','Huỷ bài']}[op];
+    return ask(L[0],L[1],L[2],()=>send('approve',{content_id:key,decision:op},
+      {approve:'Đã duyệt, AMORA 2 đang đăng',rewrite:'Đã yêu cầu viết lại',reject:'Đã huỷ bài'}[op]));
+  }
+
+  if(kind==='web'){
+    const patch={content_id:key,...(op==='save'?rf('web'):{})};
+    const M={save:'Đã lưu',unstick:'Đã đưa về hàng đợi',requeue:'Đã đưa lại vào hàng đợi viết'};
+    return send('web_write',{op,patch},M[op]||'Xong');
+  }
+  if(kind==='seo'){
+    const M={run_refresh:'Đã đặt hàng, AMORA 3 sẽ chỉnh ở lượt tới',mark_keep:'Đã đánh dấu giữ nguyên'};
+    return send('web_write',{op,patch:{content_id:key}},M[op]||'Xong');
+  }
+  if(isNew){
+    const patch={post_key:key,...rf('social'),status:'DRAFT',retry_count:0};
+    return send('social_create',{patch},'Đã thêm vào hàng đợi');
+  }
+  if(op==='duplicate'){
+    const src=S.social.find(x=>x.post_key===key); if(!src)return;
+    const c={...src,post_key:nk('AM'),status:'DRAFT',cdn_url:'',last_error:'',retry_count:0,publish_at:''};
+    return send('social_create',{patch:c},'Đã nhân bản');
+  }
+  const patch={post_key:key,...(op==='save'?rf('social'):{})};
+  const M={save:'Đã lưu',publish_now:'Đã đẩy lên đầu hàng đợi',regen:'Sẽ lấy ảnh mới ở lượt chạy tới',retry:'Đã đặt lại, sẽ thử lại'};
+  return send('social_write',{op,patch},M[op]||'Xong');
+}
+
+async function send(action,payload,msg){
+  S.busy=true;
+  document.querySelectorAll('.sheet .btn').forEach(b=>b.disabled=true);
+  try{await api(action,payload);toast(msg);hide();await load(true)}
+  catch(e){toast(e.message,true);document.querySelectorAll('.sheet .btn').forEach(b=>b.disabled=false)}
+  S.busy=false;
+}
+
+/* ═════════ khung ═════════ */
+function render(){
+  document.getElementById('main').innerHTML=
+    S.tab==='home'?vHome():S.tab==='web'?vWeb():S.tab==='social'?vSocial():
+    S.tab==='seo'?vSeo():vSys();
+  const pend=S.web.filter(w=>w.status==='WAITING_APPROVAL').length;
+  document.getElementById('nav').innerHTML=TABS.map(t=>
+    `<button data-tab="${t.k}" class="${S.tab===t.k?'on':''}">
+      <svg viewBox="0 0 24 24"><path d="${t.d}"/></svg>${t.t}
+      ${t.k==='home'&&pend?`<span class="badge">${pend}</span>`:''}</button>`).join('');
+  document.getElementById('fab').classList.toggle('hidden',S.tab!=='social');
+  const pill=document.getElementById('pill');
+  if(!S.apiUrl){pill.className='pill demo';pill.querySelector('span').textContent='bản xem thử'}
+  else{const off=String(S.settings.KILL_SWITCH||'OFF').toUpperCase()==='ON';
+    pill.className='pill'+(off?' off':'');
+    pill.querySelector('span').textContent=off?'đã tạm dừng':'đang chạy'}
+  bind();
+}
+
+function bind(){
+  document.querySelectorAll('[data-open]').forEach(el=>el.onclick=()=>{
+    const i=el.dataset.open.indexOf(':');
+    const k=el.dataset.open.slice(0,i),id=el.dataset.open.slice(i+1);
+    k==='web'?shWeb(id):k==='social'?shSocial(id):shSeo(id)});
+  document.querySelectorAll('[data-filter]').forEach(el=>el.onclick=()=>{S.filter=el.dataset.filter;render()});
+  document.querySelectorAll('[data-seg]').forEach(el=>el.onclick=()=>{S.seg=+el.dataset.seg;render()});
+  document.querySelectorAll('[data-new]').forEach(el=>el.onclick=()=>{
+    if(el.dataset.new==='social')shSocial(); else {S.tab='web';render()}});
+  document.querySelectorAll('[data-run]').forEach(el=>el.onclick=async()=>{
+    el.disabled=true;
+    try{await api('trigger',{hook:el.dataset.run});toast('Đã gửi lệnh chạy');setTimeout(()=>load(true),3000)}
+    catch(e){toast(e.message,true)}
+    el.disabled=false});
+  document.querySelectorAll('[data-act2]').forEach(el=>el.onclick=()=>{
+    ask('Gỡ tất cả bài kẹt?','Mọi bài ở trạng thái PROCESSING quá 30 phút sẽ được đưa về READY để AMORA 2 nhặt lại.',
+      'Gỡ kẹt',async()=>{try{await api('web_write',{op:'unstick_all',patch:{}});toast('Đã gỡ');await load(true)}
+        catch(e){toast(e.message,true)}})});
+
+  const q=document.getElementById('q');
+  if(q)q.oninput=()=>{S.q=q.value;clearTimeout(q._t);
+    q._t=setTimeout(()=>{const p=q.selectionStart;render();
+      const n=document.getElementById('q');if(n){n.focus();n.setSelectionRange(p,p)}},280)};
+
+  const conn=document.getElementById('b_conn');
+  if(conn)conn.onclick=async()=>{
+    S.apiUrl=document.getElementById('f_url').value.trim();
+    S.apiKey=document.getElementById('f_key').value.trim();
+    store.set('ac.url',S.apiUrl);store.set('ac.key',S.apiKey);
+    toast(S.apiUrl?'Đang kết nối…':'Đã quay về dữ liệu mẫu');await load()};
+  const kill=document.getElementById('t_kill');
+  if(kill)kill.onclick=async()=>{
+    const next=kill.getAttribute('aria-checked')==='true'?'OFF':'ON';
+    try{await api('settings_save',{settings:{KILL_SWITCH:next}});S.settings.KILL_SWITCH=next;
+      toast(next==='ON'?'Đã tạm dừng toàn hệ':'Đã chạy lại');render()}
+    catch(e){toast(e.message,true)}};
+  const cfg=document.getElementById('b_cfg');
+  if(cfg)cfg.onclick=async()=>{
+    const out={};
+    ['PUBLISH_DAYS','PUBLISH_HOUR','PUBLISH_MINUTE','POSTS_PER_DAY','ARTICLE_MIN_WORDS','AUDIT_PASS_SCORE',
+     'BRAND_TONE','GSC_LOOKBACK_DAYS','MAX_REFRESH_ATTEMPT','REFRESH_ENABLED',
+     'SOCIAL_SLOT_1','SOCIAL_SLOT_2','SOCIAL_SLOT_3','SOCIAL_PREP_AHEAD_HOURS','SOCIAL_MAX_RETRY']
+      .forEach(k=>{const v=document.getElementById('c_'+k)?.value;if(v!==undefined)out[k]=v});
+    try{await api('settings_save',{settings:out});Object.assign(S.settings,out);toast('Đã lưu cài đặt')}
+    catch(e){toast(e.message,true)}};
+}
+
+document.getElementById('nav').onclick=e=>{const b=e.target.closest('[data-tab]');if(!b)return;
+  S.tab=b.dataset.tab;S.filter='all';S.q='';S.seg=0;render()};
+document.getElementById('fab').onclick=()=>shSocial();
+document.getElementById('scrim').onclick=()=>{document.getElementById('dialog').classList.remove('on');hide()};
+document.getElementById('sheet').addEventListener('click',e=>{
+  const a=e.target.closest('[data-act]');if(a)act(a.dataset.act)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){
+  document.getElementById('dialog').classList.remove('on');if(S.open)hide()}});
+document.getElementById('refresh').onclick=()=>load();
+
+async function load(quiet){
+  const rb=document.getElementById('refresh'); rb.classList.add('spin');
+  if(!quiet){S.loading=true;render()}
+  try{
+    const [a,b,c,d,e,f]=await Promise.all([
+      api('web_list'),api('social_list'),api('seo_list'),api('runs'),api('insights'),api('settings')]);
+    S.web=a.web||[]; S.social=b.social||[]; S.seo=c.seo||[];
+    S.runs=d.runs||[]; S.insights=e.insights||[]; S.settings=f.settings||{};
+    store.set('ac.cache',JSON.stringify({web:S.web,social:S.social,seo:S.seo,
+      runs:S.runs,insights:S.insights,settings:S.settings}));
+  }catch(err){
+    const c=store.get('ac.cache');
+    if(c){Object.assign(S,JSON.parse(c));toast('Mất mạng — đang hiện bản lưu gần nhất',true)}
+    else toast(err.message,true);
+  }
+  S.loading=false; rb.classList.remove('spin'); render();
+}
+
+if('serviceWorker' in navigator)
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+render(); load();
+</script>
+</body>
+</html>
