@@ -665,7 +665,9 @@ function vSys(){
     ${S.apiUrl.includes('/webhook-test/')?`<div class="banner err" style="margin:10px 0 0">
       Bạn đang dùng <b>URL thử nghiệm</b>. Nó chỉ sống một lượt gọi rồi tắt.
       <button class="btn small" id="b_fix" style="margin-top:9px">Đổi sang /webhook/ và nối lại</button></div>`:''}
-    ${S.conn==='fail'&&S.lastErr?`<div class="banner err" style="margin:10px 0 0">${esc(S.lastErr)}</div>`:''}
+    ${(S.conn==='fail'||S.conn==='partial')&&S.lastErr?`<div class="banner err" style="margin:10px 0 0">
+      ${S.conn==='partial'?'<b>Đọc được một phần.</b> Những mục dưới đây chưa lấy được — thường là tab chưa tồn tại trong Sheet:<br>':''}
+      ${esc(S.lastErr)}</div>`:''}
     ${S.conn==='ok'?`<div class="banner" style="margin:10px 0 0;border-color:rgba(111,180,155,.4);background:rgba(111,180,155,.08)">
       Đang nối tốt — <b>${S.web.length}</b> bài website, <b>${S.social.length}</b> bài xã hội, <b>${S.pool.length}</b> ảnh trong kho.</div>`:''}
     <button class="btn" id="b_diag" style="margin-top:9px">Kiểm tra kết nối</button></div>
@@ -968,6 +970,7 @@ function render(){
   const pill=document.getElementById('pill');
   if(!S.apiUrl){pill.className='pill demo';pill.querySelector('span').textContent='bản xem thử'}
   else if(S.conn==='fail'){pill.className='pill off';pill.querySelector('span').textContent='không nối được'}
+  else if(S.conn==='partial'){pill.className='pill demo';pill.querySelector('span').textContent='thiếu một phần'}
   else if(S.conn!=='ok'){pill.className='pill demo';pill.querySelector('span').textContent='đang thử nối'}
   else{const off=String(S.settings.KILL_SWITCH||'OFF').toUpperCase()==='ON';
     pill.className='pill'+(off?' off':'');
@@ -1055,24 +1058,50 @@ document.getElementById('refresh').onclick=()=>load();
 async function load(quiet){
   const rb=document.getElementById('refresh'); rb.classList.add('spin');
   if(!quiet){S.loading=true;render()}
-  try{
-    const [a,b,c,d,e,f,g,h]=await Promise.all([
-      api('web_list'),api('social_list'),api('seo_list'),api('runs'),api('insights'),api('settings'),
-      api('pool_list'),api('studio_list')]);
-    S.web=a.web||[]; S.social=b.social||[]; S.seo=c.seo||[];
-    S.runs=d.runs||[]; S.insights=e.insights||[]; S.settings=f.settings||{};
-    S.pool=g.pool||[]; S.jobs=h.jobs||[];
-    S.conn='ok'; S.lastErr='';
+
+  // Goi song song nhung chiu duoc loi le: mot tab chua ton tai
+  // khong duoc phep lam sap ca man hinh.
+  const JOBS=[
+    ['web_list','web','web'],        ['social_list','social','social'],
+    ['seo_list','seo','seo'],        ['runs','runs','runs'],
+    ['insights','insights','insights'],['settings','settings','settings'],
+    ['pool_list','pool','pool'],     ['studio_list','jobs','jobs']];
+
+  const res=await Promise.allSettled(JOBS.map(j=>api(j[0])));
+  const failed=[];
+  let anyOk=false;
+
+  res.forEach((r,i)=>{
+    const [,key,field]=JOBS[i];
+    if(r.status==='fulfilled'){
+      anyOk=true;
+      const v=r.value?.[field];
+      if(v!==undefined) S[key]=v;
+    }else{
+      failed.push({tab:JOBS[i][0], msg:r.reason?.message||'lỗi không rõ'});
+    }
+  });
+
+  if(anyOk){
+    S.conn = failed.length ? 'partial' : 'ok';
+    S.lastErr = failed.length
+      ? failed.map(f=>`${f.tab}: ${f.msg}`).join(' · ')
+      : '';
     store.set('ac.cache',JSON.stringify({web:S.web,social:S.social,seo:S.seo,
       runs:S.runs,insights:S.insights,settings:S.settings,pool:S.pool,jobs:S.jobs}));
-  }catch(err){
-    S.conn='fail'; S.lastErr=err.message;
+    if(failed.length&&!quiet)
+      toast(`${failed.length}/8 phần chưa đọc được — xem Cài đặt`,true);
+  }else{
+    S.conn='fail';
+    S.lastErr=failed[0]?.msg||'Không gọi được n8n';
     const c=store.get('ac.cache');
-    if(c){const d=JSON.parse(c);['web','social','seo','runs','insights','settings','pool','jobs']
-      .forEach(k=>{if(d[k]!==undefined)S[k]=d[k]});
-      toast('Không nối được — đang hiện bản lưu gần nhất',true)}
-    else toast(err.message,true);
+    if(c){const d=JSON.parse(c);
+      ['web','social','seo','runs','insights','settings','pool','jobs']
+        .forEach(k=>{if(d[k]!==undefined)S[k]=d[k]});
+      toast('Không nối được — đang hiện bản lưu gần nhất',true);
+    }else toast(S.lastErr,true);
   }
+
   S.loading=false; rb.classList.remove('spin'); render();
 }
 
